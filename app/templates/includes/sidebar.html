@@ -1,0 +1,44 @@
+<!-- Sidebar -->
+<!-- 
+    Mobile: fixed, 初期状態は -translate-x-full で画面外に隠す
+    Desktop (md以上): static, translate-x-0 で常時表示
+-->
+<aside
+  id="sidebar"
+  class="fixed inset-y-0 left-0 z-30 w-64 transition-transform duration-300 transform bg-gray-800 text-white -translate-x-full md:translate-x-0 md:static md:inset-0 flex flex-col"
+>
+  <!-- Sidebar Header -->
+  <div class="flex items-center justify-center h-16 bg-gray-900 shadow-md">
+    <span class="text-2xl font-bold">MyApp</span>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="flex-1 px-2 py-4 space-y-2 overflow-y-auto">
+    <a
+      href="/dashboard"
+      class="flex items-center px-4 py-2 text-gray-300 rounded-md hover:bg-gray-700 hover:text-white transition-colors"
+    >
+      <i class="fas fa-tachometer-alt w-6"></i>
+      <span>ダッシュボード</span>
+    </a>
+    <a
+      href="/settings"
+      class="flex items-center px-4 py-2 text-gray-300 rounded-md hover:bg-gray-700 hover:text-white transition-colors"
+    >
+      <i class="fas fa-cog w-6"></i>
+      <span>設定</span>
+    </a>
+  </nav>
+
+  <!-- Sidebar Footer -->
+  <div class="p-4 border-t border-gray-700">
+    <a
+      href="/logout"
+      onclick="confirmLogout(event)"
+      class="flex items-center px-4 py-2 text-gray-300 rounded-md hover:bg-red-600 hover:text-white transition-colors"
+    >
+      <i class="fas fa-sign-out-alt w-6"></i>
+      <span>ログアウト</span>
+    </a>
+  </div>
+</aside>

@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>マイメモ - FastAPI + HTMX</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css"
+    />
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <style>
+      .note-item {
+        border-left: 4px solid #10ad93;
+        background: #f4f4f4;
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 4px;
+      }
+      .logout-link {
+        color: #d81b60;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="container">
+      <header
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        "
+      >
+        <h1>こんにちは、{{ user.username }} さん</h1>
+        <a href="/logout" class="logout-link">ログアウト</a>
+      </header>
+
+      <section>
+        <h2>新しいメモを追加</h2>
+        <form
+          hx-post="/notes"
+          hx-target="#note-list"
+          hx-swap="afterbegin"
+          onhtmx:afterRequest="this.reset()"
+        >
+          <fieldset role="group">
+            <input
+              type="text"
+              name="content"
+              placeholder="何かメモを入力..."
+              required
+            />
+            <button type="submit">追加</button>
+          </fieldset>
+        </form>
+      </section>
+
+      <hr />
+
+      <section>
+        <h2>あなたのメモ一覧</h2>
+        <div id="note-list">
+          {% for note in notes %}
+          <div class="note-item">
+            <p>{{ note.content }}</p>
+            <small>{{ note.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+    </main>
+
+    <script>
+      // HTMXのエラーハンドリング（セッション切れ時など）
+      document.body.addEventListener("htmx:responseError", function (evt) {
+        alert("エラーが発生しました: " + evt.detail.xhr.responseText);
+      });
+    </script>
+  </body>
+</html>

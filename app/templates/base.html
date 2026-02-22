@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}FastAPI App{% endblock %}</title>
+    <!-- DaisyUI & Tailwind CSS (CDN) -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/daisyui@4.7.3/dist/full.min.css"
+      rel="stylesheet"
+      type="text/css"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome (CDN) -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body class="bg-base-200 min-h-screen font-sans antialiased">
+    <div class="flex flex-col h-screen overflow-hidden">
+      <!-- Header -->
+      {% include 'includes/header.html' %}
+
+      <div class="flex flex-1 overflow-hidden relative">
+        <!-- Sidebar -->
+        {% if user %} {% include 'includes/sidebar.html' %} {% endif %}
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto p-6">
+          {% block content %}{% endblock %}
+        </main>
+
+        <!-- Mobile Overlay (背景を暗くするオーバーレイ) -->
+        <div
+          id="sidebar-overlay"
+          class="fixed inset-0 z-20 bg-black opacity-50 hidden md:hidden"
+        ></div>
+      </div>
+    </div>
+
+    <!-- Logout Confirmation Modal -->
+    <dialog id="logout_modal" class="modal">
+      <div class="modal-box">
+        <h3 class="font-bold text-lg">ログアウト確認</h3>
+        <p class="py-4">本当にログアウトしますか？</p>
+        <div class="modal-action">
+          <form method="dialog">
+            <button class="btn">キャンセル</button>
+          </form>
+          <button class="btn btn-error text-white" onclick="performLogout()">
+            ログアウト
+          </button>
+        </div>
+      </div>
+    </dialog>
+
+    <!-- Toast Notification -->
+    {% include 'includes/toast.html' %}
+
+    <script src="/static/js/logout.js"></script>
+    <script src="/static/js/ui.js"></script>
+  </body>
+</html>

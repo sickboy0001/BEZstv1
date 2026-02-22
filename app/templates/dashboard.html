@@ -1,0 +1,14 @@
+{% extends "base.html" %} {% block title %}Dashboard{% endblock %} {% block
+content %}
+<div class="card bg-base-100 shadow-xl">
+  <div class="card-body">
+    <h2 class="card-title text-2xl">Dashboard</h2>
+    <p>ようこそ、<strong>{{ user.email }}</strong> さん</p>
+    <p>ここは認証されたユーザーのみがアクセスできるダッシュボードです。</p>
+    <div class="card-actions justify-end mt-4">
+      <a href="/test_supabase" class="btn btn-secondary">Supabase Test</a>
+      <a href="/settings" class="btn btn-outline">設定ページへ</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "base.html" %} {% block title %}Supabase Test - FastAPI App{%
+endblock %} {% block content %}
+<div class="card bg-base-100 shadow-xl">
+  <div class="card-body">
+    <h2 class="card-title">Supabase Test Page</h2>
+    <p>ここはSupabase接続テスト用のページです。</p>
+
+    {% if error %}
+    <div role="alert" class="alert alert-error mt-4">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="stroke-current shrink-0 h-6 w-6"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
+      </svg>
+      <span>{{ error }}</span>
+    </div>
+    {% endif %}
+
+    <div class="overflow-x-auto mt-4">
+      <table class="table table-zebra w-full">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Data (Raw)</th>
+            <th>Updated At</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for post in posts %}
+          <tr>
+            <th>{{ post.id }}</th>
+            <td class="font-mono text-xs">{{ post }}</td>
+            <td>{{ post.update_at }}</td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="3" class="text-center">データが見つかりません</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card-actions justify-end mt-4">
+      <a href="/dashboard" class="btn btn-neutral">ダッシュボードに戻る</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
