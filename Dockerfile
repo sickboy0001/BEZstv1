@@ -22,8 +22,10 @@ RUN pip install --upgrade pip && \
 # 5. ソースコードをコピー
 COPY . .
 
-# 6. Renderの仕様（デフォルトポート10000）に合わせる
-EXPOSE 10000
+# 6. EXPOSEはCloud Runでは無視されますが、慣習として8080を書いておくか、削除しても動きます
+EXPOSE 8080
 
 # 7. 実行コマンド
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "10000"]
+# --port 10000 を --port ${PORT:-8080} に変更します
+# これにより、環境変数 PORT があればそれを使い、なければ 8080 を使います
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080}"]
