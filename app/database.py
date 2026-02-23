@@ -6,6 +6,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 raw_url = os.getenv("DATABASE_URL")
+
+if not raw_url:
+    print("【CRITICAL】DATABASE_URL環境変数が設定されていません。DB接続に失敗する可能性があります。")
+
 # print(f"DEBUG: 読み込んだURL = {raw_url}") # ← これを追加
 # SQLAlchemy 1.4以降は postgresql:// である必要があるため置換
 if raw_url and raw_url.startswith("postgres://"):

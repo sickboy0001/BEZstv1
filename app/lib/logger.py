@@ -29,22 +29,27 @@ class EnhancedCSVLogger:
         return f"{self.base_path}/{table_name}_{today}.csv"
 
     def _write_to_csv(self, table_name: str, data: Dict[str, Any]):
-        path = self._get_csv_path(table_name)
-
-        # ディレクトリが存在しない場合は作成する
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-
-        file_exists = False
         try:
-            with open(path, 'r') as f: file_exists = True
-        except FileNotFoundError: pass
+            path = self._get_csv_path(table_name)
 
-        with open(path, 'a', newline='', encoding='utf-8') as f:
-            # 辞書のキーをヘッダーとして使用
-            writer = csv.DictWriter(f, fieldnames=data.keys())
-            if not file_exists:
-                writer.writeheader()
-            writer.writerow(data)
+            # ディレクトリが存在しない場合は作成する
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+
+            file_exists = False
+            try:
+                with open(path, 'r') as f: file_exists = True
+            except FileNotFoundError: pass
+
+            with open(path, 'a', newline='', encoding='utf-8') as f:
+                # 辞書のキーをヘッダーとして使用
+                writer = csv.DictWriter(f, fieldnames=data.keys())
+                if not file_exists:
+                    writer.writeheader()
+                writer.writerow(data)
+        except Exception as e:
+            # Cloud RunなどのRead-onlyファイルシステム対策
+            # 書き込めなくても標準出力には出ているのでエラーで止めない
+            print(f"【警告】CSVファイル書き込みスキップ: {e}")
 
     def _write_to_turso(self, table_name: str, data: Dict[str, Any]):
         # 念のため実行時にもURLをチェックし、wss:// や libsql:// なら https:// に強制変換する
