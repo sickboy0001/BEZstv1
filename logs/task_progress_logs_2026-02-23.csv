@@ -1,0 +1,3 @@
+trace_id,task_name,step_name,status,execution_order,created_at
+35d1995e-2a7f-4b8c-9800-43ab9b5b4324,AI_Refinement,Fetch_Data,SUCCESS,1,2026-02-23 09:02:18.293
+35d1995e-2a7f-4b8c-9800-43ab9b5b4324,AI_Refinement,AI_Generation,IN_PROGRESS,{'text': '修正前の文章'},2,2026-02-23 09:02:18.294

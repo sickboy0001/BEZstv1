@@ -1,0 +1,17 @@
+trace_id,task_name,step_name,status,execution_order,created_at
+791ba379-3e39-4c60-a1d6-d618d3ab39aa,AI_Refinement,Fetch_Data,SUCCESS,1,2026-02-23 08:44:05.382
+791ba379-3e39-4c60-a1d6-d618d3ab39aa,AI_Refinement,AI_Generation,IN_PROGRESS,{'text': '修正前の文章'},2,2026-02-23 08:44:05.382
+9edb25cf-8dd7-4ed4-9b4e-61fa97b1b743,AI_Refinement,Fetch_Data,SUCCESS,1,2026-02-23 08:46:22.308
+9edb25cf-8dd7-4ed4-9b4e-61fa97b1b743,AI_Refinement,AI_Generation,IN_PROGRESS,{'text': '修正前の文章'},2,2026-02-23 08:46:22.309
+44951991-94ea-40f2-b94f-c82a10d264c5,AI_Refinement,Fetch_Data,SUCCESS,1,2026-02-23 08:48:38.539
+44951991-94ea-40f2-b94f-c82a10d264c5,AI_Refinement,AI_Generation,IN_PROGRESS,{'text': '修正前の文章'},2,2026-02-23 08:48:38.540
+f08a7777-ae78-429f-a65b-7d9d598a3b4b,AI_Refinement,Fetch_Data,SUCCESS,1,2026-02-23 08:48:44.721
+f08a7777-ae78-429f-a65b-7d9d598a3b4b,AI_Refinement,AI_Generation,IN_PROGRESS,{'text': '修正前の文章'},2,2026-02-23 08:48:44.728
+890f8467-b019-490a-96e2-61ea9ac28ae3,AI_Refinement,Fetch_Data,SUCCESS,1,2026-02-23 08:52:29.757
+890f8467-b019-490a-96e2-61ea9ac28ae3,AI_Refinement,AI_Generation,IN_PROGRESS,{'text': '修正前の文章'},2,2026-02-23 08:52:29.757
+3f8f21b3-5877-440e-b0c4-0f58a43a96ae,AI_Refinement,Fetch_Data,SUCCESS,1,2026-02-23 08:54:11.811
+3f8f21b3-5877-440e-b0c4-0f58a43a96ae,AI_Refinement,AI_Generation,IN_PROGRESS,{'text': '修正前の文章'},2,2026-02-23 08:54:11.811
+519a2fe6-8717-4381-b725-0350c230df08,AI_Refinement,Fetch_Data,SUCCESS,1,2026-02-23 08:55:42.409
+519a2fe6-8717-4381-b725-0350c230df08,AI_Refinement,AI_Generation,IN_PROGRESS,{'text': '修正前の文章'},2,2026-02-23 08:55:42.409
+0ee99df6-e782-48ec-a075-3a0f8d068780,AI_Refinement,Fetch_Data,SUCCESS,1,2026-02-23 08:55:43.910
+0ee99df6-e782-48ec-a075-3a0f8d068780,AI_Refinement,AI_Generation,IN_PROGRESS,{'text': '修正前の文章'},2,2026-02-23 08:55:43.916
