@@ -1,49 +1,52 @@
-
-# PFXDGRSbase
-
-Python + FastAPI + htmx + Docker + Render + Supabase を組み合わせた、開発効率とモダンなユーザー体験を両立させるためのフルスタック・テンプレートです。
-
 ## 🚀 プロジェクト概要
 
-PFXDRS Templateは、ReactやVueなどの重厚なSPAフレームワークを使わずに、HTMLベースで動的なUIを実現する\*\*「ハイパーメディア駆動」\*\*な開発スタイルを提案します。
-クリーンなディレクトリ構成とコンテナ化により、迅速な開発からデプロイまでをスムーズに行える構成になっています。
+**BackEndZeroSecondThink** は、Python/FastAPI と htmx を組み合わせ、SPAのような操作感を最小限の JavaScript で実現するモダンな Web アプリケーションです。Cloud Run によるオートスケーリングと、Turso による高速なエッジ・ロギングを組み合わせ、高可用かつ低遅延なシステムを目指しています。
 
 ---
 
 ## 🛠 技術スタックと選定理由
 
-|技術要素|役割・選定理由|
-|-|-|
-|**Python / FastAPI**|サーバーサイドの主軸。Router/Service層を分けたクリーンな構成の学習と実践。|
-|**htmx**|フロントエンドのUX向上。HTMLベースで動的な非同期通信を実現し、複雑さを軽減。|
-|**DaisyUI (Tailwind CSS)**|UIコンポーネントライブラリ。直接CSSを書く手間を省き、一貫したデザインを迅速に構築。|
-|**Docker**|環境のポータビリティ確保。Render以外のホスト環境への移行も容易にするため。|
-|**Render**|サーバーサイドおよびDockerとの親和性が高く、Vercel以外の有力な選択肢として採用。|
-|**Supabase**|データベース(PostgreSQL)および認証基盤(Auth)として利用。|
+| 技術要素 | 役割・選定理由 |
+| --- | --- |
+| **Python / FastAPI** | サーバーサイドの主軸。非同期処理と型安全性を両立し、DIを活用した保守性の高い設計を実践。 |
+| **htmx** | フロントエンドのUX向上。サーバーサイドから部分的なHTMLを返すことで、複雑なJSフレームワークなしに動的なUIを実現。 |
+| **DaisyUI (Tailwind)** | UIコンポーネント。一貫したデザインと迅速なスタイリングを可能にするため採用。 |
+| **Cloud Run (Docker)** | インフラ基盤。Renderから移行し、リクエストに応じた柔軟なスケーリングとデプロイの高速化を実現。 |
+| **Supabase** | 認証基盤（Auth）およびメインの構造化データ（PostgreSQL）の管理。 |
+| **Turso (libSQL)** | **エッジ・ロギング。** CSVLoggerを拡張し、APIアクセスログや処理進捗を低遅延でクラウド上に蓄積。 |
 
 ---
 
 ## 📋 基本仕様
 
-### 1\. 開発・実行環境
+### 1. 開発・実行環境
 
 * **エディタ**: Visual Studio Code (VS Code)
-* **開発支援**: Gemini Code Assist
-* **ランタイム**: Python 3.11+ / Docker
+* **ランタイム**: Python 3.12+ / Docker
+* **ローカル環境**: `venv` による仮想環境管理
 * **パッケージ管理**: pip (`requirements.txt`)
 
-### 2\. フロントエンド
+### 2. フロントエンド
 
-* **テンプレートエンジン**: Jinja2 (サーバーサイドレンダリング)
-* **非同期通信**: htmx (Partial HTMLの差し替え)
-* **スタイリング**: DaisyUI (Tailwind CSSベースのコンポーネント)
+* **テンプレートエンジン**: Jinja2 (サーバーサイド・レンダリング)
+* **非同期通信**: htmx (HTMLの部分置換、ローディング制御)
+* **デザイン**: DaisyUI / Tailwind CSS
 
-### 3\. バックエンド \& BaaS
+### 3. バックエンド & データ層
 
-* **Webフレームワーク**: FastAPI
-* **バリデーション**: Pydantic
-* **DB/Auth**: Supabase (PostgreSQL / Supabase Auth)
-* **SDK**: `supabase-py`
+* **Webフレームワーク**: FastAPI (Async対応)
+* **バリデーション**: Pydantic v2
+* **メインDB/認証**: Supabase 
+* **ログ基盤**: Turso (HTTPベースのSQLite) ＋ ローカルCSVのハイブリッド構成
+
+### 4. インフラ
+
+* **デプロイ**: Google Cloud Build -> Cloud Run
+* **環境変数管理**: `.env` による環境分離 (Local / Production)
+
+---
+
+
 
 ---
 
@@ -77,7 +80,7 @@ localProject/
 
 ## 🚢 デプロイフロー
 
-Renderを利用したCI/CDが自動化されています。
+CloudRunを利用したCI/CDが自動化されています。
 
 1. **GitHubへPush**: `main` ブランチへコードをプッシュ。
 2. **ビルド**: Renderがリポジトリの `Dockerfile` を検知し、Dockerイメージをビルド。
@@ -216,136 +219,6 @@ CREATE INDEX idx_task_progress_created_at ON task_progress_logs(created_at);
 
 これを使うことで、**「ローカルのCSV」と「クラウドのTurso」に全く同じ構造のログが自動的に蓄積**されるようになります。
 
-### 1. 拡張版 `EnhancedCSVLogger` の実装
-
-このクラス1つで、共通ログ（A）と進捗ログ（B）の両方に対応させます。
-
-```python
-import csv
-import json
-import uuid
-from datetime import datetime
-from typing import Any, Dict
-from fastapi import BackgroundTasks
-from libsql_client import create_client_sync
-
-class EnhancedCSVLogger:
-    def __init__(self, turso_url: str, turso_token: str, base_path: str = "logs"):
-        self.turso_url = turso_url
-        self.turso_token = turso_token
-        self.base_path = base_path
-
-    def _get_csv_path(self, table_name: str) -> str:
-        # テーブル名ごとにCSVファイルを分ける (api_logs.csv, task_progress_logs.csv)
-        return f"{self.base_path}/{table_name}.csv"
-
-    def _write_to_csv(self, table_name: str, data: Dict[str, Any]):
-        path = self._get_csv_path(table_name)
-        file_exists = False
-        try:
-            with open(path, 'r') as f: file_exists = True
-        except FileNotFoundError: pass
-
-        with open(path, 'a', newline='', encoding='utf-8') as f:
-            # 辞書のキーをヘッダーとして使用
-            writer = csv.DictWriter(f, fieldnames=data.keys())
-            if not file_exists:
-                writer.writeheader()
-            writer.writerow(data)
-
-    def _write_to_turso(self, table_name: str, data: Dict[str, Any]):
-        try:
-            # Turso(SQLite)用にデータを加工（辞書・リストをJSON文字列へ）
-            processed_data = {
-                k: (json.dumps(v) if isinstance(v, (dict, list)) else v) 
-                for k, v in data.items()
-            }
-            
-            with create_client_sync(self.turso_url, auth_token=self.turso_token) as client:
-                keys = ", ".join(processed_data.keys())
-                placeholders = ", ".join([":" + k for k in processed_data.keys()])
-                sql = f"INSERT INTO {table_name} ({keys}) VALUES ({placeholders})"
-                client.execute(sql, processed_data)
-        except Exception as e:
-            print(f"【警告】Turso書き込み失敗 (CSVには保存済): {e}")
-
-    def log(self, background_tasks: BackgroundTasks, table_name: str, data: Dict[str, Any]):
-        """CSV保存とTurso保存(非同期)を同時に実行"""
-        # 共通項目の自動付与
-        if "created_at" not in data:
-            data["created_at"] = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
-        
-        # 1. ローカルCSVへ即時書き込み
-        self._write_to_csv(table_name, data)
-        
-        # 2. Tursoへバックグラウンド書き込み
-        background_tasks.add_task(self._write_to_turso, table_name, data)
-
-```
-
-### 2. FastAPIでの具体的な利用シーン
-
-先ほど定義したテーブル構成に合わせてデータを流し込みます。
-
-```python
-from fastapi import FastAPI, BackgroundTasks, Request
-
-app = FastAPI()
-# 初期化
-logger = EnhancedCSVLogger(
-    turso_url="libsql://your-db-name.turso.io",
-    turso_token="your-auth-token"
-)
-
-@app.post("/execute-ai-task")
-async def execute_task(request: Request, background_tasks: BackgroundTasks):
-    trace_id = str(uuid.uuid4())
-    
-    # --- A. 共通アクセスログ (api_logs) ---
-    logger.log(background_tasks, "api_logs", {
-        "trace_id": trace_id,
-        "method": "POST",
-        "endpoint": "/execute-ai-task",
-        "request_header": dict(request.headers),
-        "request_body": {"item_id": 101}, # 例
-        "ip_address": request.client.host
-    })
-
-    # --- B. 目的別・処理進捗ログ (task_progress_logs) ---
-    # ステップ1: 開始
-    logger.log(background_tasks, "task_progress_logs", {
-        "trace_id": trace_id,
-        "task_name": "AI_Refinement",
-        "step_name": "Fetch_Data",
-        "status": "SUCCESS",
-        "execution_order": 1
-    })
-
-    # 実際の処理（シミュレーション）
-    try:
-        # ステップ2: AI処理中...
-        logger.log(background_tasks, "task_progress_logs", {
-            "trace_id": trace_id,
-            "task_name": "AI_Refinement",
-            "step_name": "AI_Generation",
-            "status": "IN_PROGRESS",
-            "input_data": {"text": "修正前の文章"},
-            "execution_order": 2
-        })
-    except Exception as e:
-        # 失敗時の記録
-        logger.log(background_tasks, "task_progress_logs", {
-            "trace_id": trace_id,
-            "task_name": "AI_Refinement",
-            "step_name": "AI_Generation",
-            "status": "FAILED",
-            "error_message": str(e),
-            "execution_order": 2
-        })
-
-    return {"status": "accepted", "trace_id": trace_id}
-
-```
 
 ### この構成で実現できること
 
@@ -363,41 +236,6 @@ async def execute_task(request: Request, background_tasks: BackgroundTasks):
 
 ---
 
-### 1. 推奨される配置場所
-
-| 配置場所 | 役割 | 理由 |
-| --- | --- | --- |
-| **`app/lib/logger.py`** | **クラス定義** | ロガーはビジネスロジックではなく「基盤となる道具」なので `lib` が適切です。 |
-| **`app/main.py`** | **初期化 (DI用)** | TursoのURLやトークンを読み込み、1つのインスタンス（シングルトン）を作ります。 |
-| **`app/services/`** | **利用場所** | 進捗ログ（Task_Progress_Logs）を記録するために注入して使います。 |
-
----
-
-### 2. 具体的な実装イメージ
-
-#### ① クラス定義：`app/lib/logger.py`
-
-ここに先ほどの `EnhancedCSVLogger` クラスを置きます。
-
-#### ② 初期化とDI設定：`app/main.py`
-
-FastAPI の `Depends` を使って、どこでもロガーを呼び出せるようにします。
-
-```python
-from app.lib.logger import EnhancedCSVLogger
-import os
-
-# 1. アプリ全体で共有するインスタンスを作成（シングルトン）
-logger_instance = EnhancedCSVLogger(
-    turso_url=os.getenv("TURSO_URL"),
-    turso_token=os.getenv("TURSO_TOKEN")
-)
-
-# 2. DI用の関数
-def get_logger():
-    return logger_instance
-
-```
 
 #### ③ サービス層での利用：`app/services/item_service.py`
 
