@@ -1,65 +1,76 @@
 {% extends "base.html" %} {% block title %}Login{% endblock %} {% block content
 %}
-<div class="flex justify-center items-center mt-12">
-  <div class="card w-full max-w-sm shadow-2xl bg-base-100">
-    <form class="card-body" action="/login" method="post">
-      <h2 class="text-2xl font-bold text-center mb-4">Login</h2>
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+      <div class="card shadow-sm">
+        <div class="card-body p-4">
+          <h2 class="card-title text-center mb-4 fw-bold">Login</h2>
 
-      {% if error %}
-      <div role="alert" class="alert alert-error mb-4">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="stroke-current shrink-0 h-6 w-6"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-        <span>{{ error }}</span>
-      </div>
-      {% endif %}
-
-      <div class="form-control">
-        <label class="label"><span class="label-text">Email</span></label>
-        <input
-          type="email"
-          name="email"
-          placeholder="email@example.com"
-          class="input input-bordered"
-          required
-        />
-      </div>
-
-      <div class="form-control mt-4">
-        <label class="label"><span class="label-text">Password</span></label>
-        <input
-          type="password"
-          name="password"
-          placeholder="password"
-          class="input input-bordered"
-          required
-        />
-        <label class="label">
-          <a href="#" class="label-text-alt link link-hover"
-            >Forgot password?</a
+          {# エラーメッセージの表示 #} {% if error %}
+          <div
+            class="alert alert-danger d-flex align-items-center mb-4"
+            role="alert"
           >
-        </label>
-      </div>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              fill="currentColor"
+              class="bi bi-exclamation-octagon-fill me-2"
+              viewBox="0 0 16 16"
+            >
+              <path
+                d="M11.46.146A.5.5 0 0 0 11.107 0H4.893a.5.5 0 0 0-.353.146L.146 4.54A.5.5 0 0 0 0 4.893v6.214a.5.5 0 0 0 .146.353l4.394 4.394a.5.5 0 0 0 .353.146h6.214a.5.5 0 0 0 .353-.146l4.394-4.394a.5.5 0 0 0 .146-.353V4.893a.5.5 0 0 0-.146-.353L11.46.146zM8 4c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995A.905.905 0 0 1 8 4zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"
+              />
+            </svg>
+            <div>{{ error }}</div>
+          </div>
+          {% endif %}
 
-      <div class="form-control mt-6">
-        <button type="submit" class="btn btn-primary">Login</button>
+          <form action="/login" method="post">
+            <div class="mb-3">
+              <label for="email" class="form-label">Email</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                class="form-control"
+                placeholder="email@example.com"
+                required
+              />
+            </div>
+
+            <div class="mb-3">
+              <div class="d-flex justify-content-between">
+                <label for="password" class="form-label">Password</label>
+                <a href="#" class="text-decoration-none small"
+                  >Forgot password?</a
+                >
+              </div>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                class="form-control"
+                placeholder="password"
+                required
+              />
+            </div>
+
+            <div class="d-grid mt-4">
+              <button type="submit" class="btn btn-primary">Login</button>
+            </div>
+
+            <div class="text-center mt-4">
+              <a href="/register" class="text-decoration-none small"
+                >新規アカウント作成はこちら</a
+              >
+            </div>
+          </form>
+        </div>
       </div>
-      <div class="text-center mt-4">
-        <a href="/register" class="link link-hover text-sm"
-          >新規アカウント作成はこちら</a
-        >
-      </div>
-    </form>
+    </div>
   </div>
 </div>
 {% endblock %}

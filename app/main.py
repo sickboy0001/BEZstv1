@@ -1,9 +1,10 @@
 from pathlib import Path
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from app.routers import system_logs, testapi
+from app.routers import api, system_logs, testapi, api_ui
 from .routers import auth, pages, system,loggertest
 from app.lib.logger import EnhancedCSVLogger
+
 import os
 
 # 1. アプリ全体で共有するインスタンスを作成（シングルトン）
@@ -28,7 +29,9 @@ app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="stat
 app.include_router(auth.router)
 app.include_router(pages.router)
 app.include_router(system.router)
-app.include_router(auth.router)
 app.include_router(loggertest.router)
 app.include_router(system_logs.router)
 app.include_router(testapi.router)
+app.include_router(api.router)
+app.include_router(api_ui.router)
+

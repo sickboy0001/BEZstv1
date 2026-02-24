@@ -1,0 +1,118 @@
+<!-- HTMXによってロードされるモーダルコンテンツ -->
+<div
+  class="modal fade"
+  id="postSelectionModal"
+  tabindex="-1"
+  aria-labelledby="postSelectionModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="postSelectionModalLabel">
+          <i class="bi bi-card-list me-2"></i>Post選択
+        </h5>
+
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body p-0">
+        <div class="list-group list-group-flush">
+          {% for post in posts %}
+          <label
+            class="list-group-item list-group-item-action p-3 d-flex gap-3 align-items-start"
+            style="cursor: pointer"
+          >
+            <input
+              class="form-check-input flex-shrink-0 mt-2"
+              type="checkbox"
+              name="selected_posts"
+              value="{{ post.id }}"
+            />
+            <div class="w-100">
+              <div
+                class="d-flex w-100 justify-content-between align-items-center mb-1"
+              >
+                <h6
+                  class="mb-0 text-truncate fw-bold text-primary"
+                  style="max-width: 70%"
+                >
+                  {{ post.title or 'No Title' }}
+                </h6>
+                <span
+                  class="badge bg-secondary bg-opacity-10 text-secondary border"
+                  >ID: {{ post.id }}</span
+                >
+              </div>
+              {% if post.tags %}
+              <div class="mb-1">
+                {% for tag in post.tags %}
+                <span class="badge bg-light text-dark border me-1"
+                  >{{ tag }}</span
+                >
+                {% endfor %}
+              </div>
+              {% endif %}
+              <p class="mb-1 small text-truncate text-secondary">
+                {{ post.content or '' }}
+              </p>
+              <div class="d-flex justify-content-between align-items-end">
+                <small class="text-muted" style="font-size: 0.75rem">
+                  {% if post.current_at %}<i
+                    class="bi bi-calendar-event me-1"
+                  ></i
+                  >{{ post.current_at.strftime('%Y/%m/%d') }}{% endif %}
+                </small>
+                <small class="text-muted" style="font-size: 0.75rem">
+                  <i class="bi bi-clock me-1"></i>
+                  {% if post.created_at and post.created_at.strftime is defined
+                  %}{{ post.created_at.strftime('%Y/%m/%d %H:%M') }} {% else
+                  %}{{ post.created_at }}{% endif %} {{ post.created_at | jst }}
+                </small>
+              </div>
+            </div>
+          </label>
+          {% else %}
+          <div class="text-center p-5 text-muted">
+            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+            <p>データが見つかりませんでした。</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          キャンセル
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          onclick="applyPostSelection()"
+        >
+          選択を反映
+        </button>
+      </div>
+    </div>
+  </div>
+  <script>
+    function applyPostSelection() {
+      const checkboxes = document.querySelectorAll(
+        '#postSelectionModal input[name="selected_posts"]:checked',
+      );
+      const ids = Array.from(checkboxes).map((cb) => cb.value);
+
+      if (ids.length === 0) {
+        return;
+      }
+
+      // 親画面の関数を呼び出す
+      if (typeof selectPostId === "function") {
+        selectPostId(ids);
+      }
+    }
+  </script>
+</div>

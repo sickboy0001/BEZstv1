@@ -1,44 +1,74 @@
-<!-- Sidebar -->
-<!-- 
-    Mobile: fixed, 初期状態は -translate-x-full で画面外に隠す
-    Desktop (md以上): static, translate-x-0 で常時表示
--->
 <aside
   id="sidebar"
-  class="fixed inset-y-0 left-0 z-30 w-64 transition-transform duration-300 transform bg-gray-800 text-white -translate-x-full md:translate-x-0 md:static md:inset-0 flex flex-col"
+  class="d-flex flex-column flex-shrink-0 text-white bg-dark vh-100 position-fixed position-md-static z-3"
+  style="
+    width: 280px;
+    transition: transform 0.3s ease;
+    transform: translateX(-100%);
+  "
 >
-  <!-- Sidebar Header -->
-  <div class="flex items-center justify-center h-16 bg-gray-900 shadow-md">
-    <span class="text-2xl font-bold">MyApp</span>
+  <div
+    class="d-flex align-items-center justify-content-center py-3 bg-black shadow-sm"
+  >
+    <span class="fs-4 fw-bold">MyApp</span>
   </div>
 
-  <!-- Navigation -->
-  <nav class="flex-1 px-2 py-4 space-y-2 overflow-y-auto">
-    <a
-      href="/dashboard"
-      class="flex items-center px-4 py-2 text-gray-300 rounded-md hover:bg-gray-700 hover:text-white transition-colors"
-    >
-      <i class="fas fa-tachometer-alt w-6"></i>
-      <span>ダッシュボード</span>
-    </a>
-    <a
-      href="/settings"
-      class="flex items-center px-4 py-2 text-gray-300 rounded-md hover:bg-gray-700 hover:text-white transition-colors"
-    >
-      <i class="fas fa-cog w-6"></i>
-      <span>設定</span>
-    </a>
+  <hr class="my-0 border-secondary" />
+
+  <nav
+    class="nav nav-pills flex-column mb-auto px-3 py-4 gap-2 overflow-y-auto"
+  >
+    <li class="nav-item">
+      <a
+        href="/dashboard"
+        class="nav-link text-white d-flex align-items-center py-2 hover-bg-gray"
+      >
+        <i class="fas fa-tachometer-alt me-3" style="width: 20px"></i>
+        <span>ダッシュボード</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a
+        href="/settings"
+        class="nav-link text-white d-flex align-items-center py-2 hover-bg-gray"
+      >
+        <i class="fas fa-cog me-3" style="width: 20px"></i>
+        <span>設定</span>
+      </a>
+    </li>
   </nav>
 
-  <!-- Sidebar Footer -->
-  <div class="p-4 border-t border-gray-700">
+  <div class="p-3 border-top border-secondary">
     <a
       href="/logout"
       onclick="confirmLogout(event)"
-      class="flex items-center px-4 py-2 text-gray-300 rounded-md hover:bg-red-600 hover:text-white transition-colors"
+      class="nav-link text-white d-flex align-items-center py-2 px-3 rounded hover-bg-danger"
     >
-      <i class="fas fa-sign-out-alt w-6"></i>
+      <i class="fas fa-sign-out-alt me-3" style="width: 20px"></i>
       <span>ログアウト</span>
     </a>
   </div>
 </aside>
+
+<style>
+  /* Bootstrapにないカスタムホバー・レスポンシブ制御 */
+  .hover-bg-gray:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  .hover-bg-danger:hover {
+    background-color: #dc3545 !important;
+  }
+
+  /* デスクトップ表示（md以上）での表示設定 */
+  @media (min-width: 768px) {
+    #sidebar {
+      transform: translateX(0) !important;
+      position: static !important;
+    }
+  }
+
+  /* サイドバーが開いている時のモバイル用クラス（JSで制御する場合） */
+  #sidebar.show {
+    transform: translateX(0) !important;
+  }
+</style>

@@ -1,44 +1,78 @@
-<header class="navbar bg-base-100 border-b border-base-300 px-4 md:px-8">
-  <!-- Mobile Menu Button -->
-  <div class="flex-none md:hidden mr-2">
-    <button id="mobile-menu-button" class="btn btn-square btn-ghost">
-      <i class="fas fa-bars text-xl"></i>
-    </button>
-  </div>
-  <div class="flex-1">
-    <a href="/" class="btn btn-ghost text-xl font-bold tracking-tight"
-      >TestLoginEtc・・・</a
+<header
+  class="navbar navbar-expand-md navbar-light bg-white border-bottom px-3 px-md-4"
+>
+  <div class="container-fluid">
+    <button
+      id="mobile-menu-button"
+      class="btn btn-outline-secondary d-md-none me-2"
     >
-  </div>
-  <div class="flex-none gap-2">
-    {% if user %}
-    <div class="dropdown dropdown-end">
-      <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
-        <div
-          class="w-10 rounded-full bg-primary text-primary-content flex items-center justify-center"
+      <i class="fas fa-bars"></i>
+    </button>
+
+    <a href="/" class="navbar-brand fw-bold tracking-tight">
+      TestLoginEtc・・・
+    </a>
+
+    <div class="ms-auto d-flex align-items-center">
+      {% if user %}
+      <div class="dropdown">
+        <button
+          class="btn btn-link p-0 text-decoration-none dropdown-toggle d-flex align-items-center justify-content-center border-0 shadow-none no-caret"
+          type="button"
+          id="userDropdown"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
         >
-          <span>{{ (user.name if user.name else user.email)[0] | upper }}</span>
-        </div>
-      </div>
-      <ul
-        tabindex="0"
-        class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52"
-      >
-        <li
-          class="menu-title px-4 py-2 text-base-content border-b border-base-200 mb-2 truncate"
-        >
-          {{ user.name if user.name else user.email }}
-        </li>
-        <li><a href="/profile">Profile</a></li>
-        <li>
-          <a href="/logout" class="text-error" onclick="confirmLogout(event)"
-            >Logout</a
+          <div
+            class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm"
+            style="width: 40px; height: 40px"
           >
-        </li>
-      </ul>
+            <span class="fw-bold"
+              >{{ (user.name if user.name else user.email)[0] | upper }}</span
+            >
+          </div>
+        </button>
+
+        <ul
+          class="dropdown-menu dropdown-menu-end shadow border-0 mt-2"
+          aria-labelledby="userDropdown"
+        >
+          <li
+            class="px-3 py-2 text-muted border-bottom mb-1 small text-truncate"
+            style="max-width: 200px"
+          >
+            {{ user.name if user.name else user.email }}
+          </li>
+          <li>
+            <a class="dropdown-item" href="/profile"
+              ><i class="fas fa-user me-2"></i>Profile</a
+            >
+          </li>
+          <li><hr class="dropdown-divider" /></li>
+          <li>
+            <a
+              class="dropdown-item text-danger"
+              href="/logout"
+              onclick="confirmLogout(event)"
+            >
+              <i class="fas fa-sign-out-alt me-2"></i>Logout
+            </a>
+          </li>
+        </ul>
+      </div>
+      {% else %}
+      <a href="/login" class="btn btn-primary btn-sm px-3">Login</a>
+      {% endif %}
     </div>
-    {% else %}
-    <a href="/login" class="btn btn-primary btn-sm">Login</a>
-    {% endif %}
   </div>
 </header>
+
+<style>
+  /* ドロップダウンの矢印を消す（DaisyUIの見た目に寄せる） */
+  .no-caret::after {
+    display: none !important;
+  }
+  .navbar-brand {
+    font-size: 1.25rem;
+  }
+</style>

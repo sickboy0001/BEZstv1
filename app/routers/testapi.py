@@ -1,15 +1,17 @@
-from fastapi import APIRouter, Request, Depends, Query
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, Request, Depends, Query, HTTPException
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from datetime import date, datetime, timedelta
 import logging
+from typing import Optional, List
+from pydantic import BaseModel
+from uuid import UUID
 
 from libsql_client import Client
 from app.database_turso import get_db_turso
+from app.dependencies import get_current_user,templates
 from app.routers.system_logs import get_system_traces
 
-# テンプレートエンジンの設定（templatesディレクトリを指すように調整してください）
-templates = Jinja2Templates(directory="app/templates")
 
 router = APIRouter(
     prefix="/test-api",
@@ -66,3 +68,61 @@ async def read_turso_api_log(
             "end_date": end_date
         }
     )
+
+
+
+
+
+
+@router.get("/Cleaning_post_api_test", response_class=HTMLResponse)
+async def cleaning_post_api_test(
+    request: Request,
+    user = Depends(get_current_user),
+    start_date: Optional[date] = Query(None),
+    end_date: Optional[date] = Query(None)
+):
+    print("cleaning_post_api_test:start")
+    if not user:
+        return RedirectResponse(url="/login")
+
+    if start_date is None:
+        start_date = date.today()
+    if end_date is None:
+        end_date = date.today()
+    # print("userid:", user.id)
+
+    context = {
+        "request": request,
+        "user": user,
+        "user_id": user.id,
+        "target_period": {
+            "start_date": start_date.isoformat(),
+            "end_date": end_date.isoformat(),
+        },
+        "post_ids": "",  # 初期値は空
+        "target_condition_options": [
+            {"value": "none", "label": "未処理のみ (unprocessed, requeue)"},
+            {"value": "all", "label": "全データ強制再精査 (refined, completed含む)"}
+        ],
+        "loglevel_options": [
+            {"value": "normal", "label": "Normal: ヘッダ・経緯のみ"},
+            {"value": "detail", "label": "Detail: プロンプト・AI回答をフル保存"},
+            {"value": "none", "label": "None: ログ保存なし"}
+        ],
+        "disp_options": [
+            {"value": "none", "label": "全工程完遂"},
+            {"value": "targets", "label": "工程4まで（対象抽出の確認）"},
+            {"value": "airesult", "label": "工程7まで（AI回答の確認）"},
+            {"value": "results", "label": "工程9まで（DB反映直前までの確認）"}
+        ],
+        # デフォルト選択値
+        "default_target_condition": "none",
+        "default_loglevel": "normal",
+        "default_disp": "none",
+    }
+    # print("cleaning_post_api_test:end:" ,context)
+    return templates.TemplateResponse(
+        "api_test/cleaning_post_test.html",
+        context
+    )
+

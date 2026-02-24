@@ -1,0 +1,35 @@
+# --- Python / FastAPI 固有のノイズをカット ---
+# 仮想環境（AIがライブラリのソースコードまで読み込むのを防ぐ）
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- データベース・キャッシュ関連 ---
+# ローカルのSQLiteファイルやDBマイグレーションの履歴
+*.sqlite3
+*.db
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- ビルド・配布成果物 ---
+dist/
+build/
+*.egg-info/
+
+# --- 環境変数・秘匿情報（セキュリティと精度の両面で重要） ---
+.env
+.env.*
+!.env.example
+
+# --- OS・エディタ固有のファイル ---
+.DS_Store
+.vscode/
+.idea/
+
+# --- ドキュメント生成成果物（自動生成されるHTMLなどは不要） ---
+site/
+docs/_build/

@@ -1,17 +1,37 @@
 {% extends "base.html" %} {% block title %}Dashboard{% endblock %} {% block
 content %}
-<h3>開発・デバッグ用ツール</h3>
-<hr />
+<div class="container mt-4">
+  <div class="d-flex align-items-center mb-3">
+    <h3 class="mb-0">開発・デバッグ用ツール</h3>
+    <span class="badge bg-secondary ms-2">Developer Mode</span>
+  </div>
+  <hr class="mb-4" />
 
-{% for tool in dev_tools %}
-<div class="col-md-6 mb-3">
-  <div class="card border-info">
-    <div class="card-body">
-      <h5 class="card-title">{{ tool.name }}</h5>
-      <h6 class="card-subtitle mb-2 text-muted">Endpoint: {{ tool.url }}</h6>
-      <p class="card-text">{{ tool.description }}</p>
-      <a href="{{ tool.url }}" class="btn btn-outline-info">ツールを開く</a>
+  <div class="row row-cols-1 row-cols-md-2 g-4">
+    {% for tool in dev_tools %}
+    <div class="col">
+      <div class="card h-100 border-info shadow-sm">
+        <div
+          class="card-header bg-info bg-opacity-10 text-info-emphasis fw-bold"
+        >
+          <i class="bi bi-wrench-adjustable me-2"></i>{{ tool.name }}
+        </div>
+        <div class="card-body d-flex flex-column">
+          <h6 class="card-subtitle mb-2 text-muted small">
+            <code>Endpoint: {{ tool.url }}</code>
+          </h6>
+          <p class="card-text text-secondary flex-grow-1">
+            {{ tool.description }}
+          </p>
+          <div class="mt-3">
+            <a href="{{ tool.url }}" class="btn btn-outline-info w-100">
+              ツールを開く
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
+    {% endfor %}
   </div>
 </div>
-{% endfor %} {% endblock %}
+{% endblock %}
