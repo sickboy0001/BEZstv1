@@ -8,7 +8,7 @@ from app.dependencies import get_logger
 
 
 router = APIRouter()
-
+#get_db_tursoを使って利用すること
 
 @router.post("/loggertest")
 async def execute_task(request: Request,

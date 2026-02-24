@@ -12,6 +12,5 @@ email-validator
 sentry-sdk
 httpx
 pyyaml
-watchfiles
 python-jose
 libsql-client

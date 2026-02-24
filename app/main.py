@@ -1,6 +1,7 @@
 from pathlib import Path
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from app.routers import system_logs, testapi
 from .routers import auth, pages, system,loggertest
 from app.lib.logger import EnhancedCSVLogger
 import os
@@ -29,3 +30,5 @@ app.include_router(pages.router)
 app.include_router(system.router)
 app.include_router(auth.router)
 app.include_router(loggertest.router)
+app.include_router(system_logs.router)
+app.include_router(testapi.router)

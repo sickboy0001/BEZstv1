@@ -11,8 +11,24 @@ router = APIRouter()
 async def dashboard(request: Request, user = Depends(get_current_user)):
     if not user:
         return RedirectResponse(url="/login")
+    
+    # テスト用ツールの情報を辞書で定義（テンプレート側でループ回したり、直接指定したりできます）
+    developer_tools = [
+        {
+            "name": "Turso APIログ確認",
+            "url": "/test-api/read-turso-api-log",
+            "description": "API実行履歴とタスク進捗ログを結合して表示します。DB接続確認やログ入手テスト用です。"
+        }
+    ]
         
-    return templates.TemplateResponse("dashboard.html", {"request": request, "user": user})
+    return templates.TemplateResponse(
+        "dashboard.html", 
+        {
+            "request": request, 
+            "user": user,
+            "dev_tools": developer_tools
+        }
+    )
 
 @router.get("/settings", response_class=HTMLResponse)
 async def settings(request: Request, user = Depends(get_current_user)):

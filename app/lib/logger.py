@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Any, Dict
 from fastapi import BackgroundTasks
 from libsql_client import create_client_sync
+from datetime import datetime, timezone  # timezone をインポート
 
 class EnhancedCSVLogger:
     def __init__(self, turso_url: str, turso_token: str, base_path: str = "logs"):
@@ -80,8 +81,8 @@ class EnhancedCSVLogger:
         """CSV保存とTurso保存(非同期)を同時に実行"""
         # 共通項目の自動付与
         if "created_at" not in data:
-            data["created_at"] = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
-        
+          # datetime.now(timezone.utc) を使うことで、どこで動かしてもUTCになります
+          data["created_at"] = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]        
         # 1. ローカルCSVへ即時書き込み
         self._write_to_csv(table_name, data)
         
