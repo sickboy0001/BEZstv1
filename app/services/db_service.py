@@ -1,6 +1,9 @@
 
+from typing import List
+
 from sqlalchemy.orm import Session
 from sqlalchemy import text
+from datetime import date
 
 def get_datefromto_posts(db: Session, userid: str, start_date: date, end_date: date, limit: int = 200):
     """
