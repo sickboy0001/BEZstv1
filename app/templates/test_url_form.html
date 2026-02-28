@@ -1,0 +1,111 @@
+
+{% extends "base.html" %} {% block title %}Settings{% endblock %} {% block
+content %}
+    <h1>テストフォーム</h1>
+    <form method="post">
+      <label for="system_name">システム名:</label><br />
+      <input
+        type="text"
+        id="system_name"
+        name="system_name"
+        value="{{ system_name }}"
+      /><br /><br />
+
+      <label for="user_id">ユーザーID:</label><br />
+      <input
+        type="text"
+        id="user_id"
+        name="user_id"
+        value="{{ user_id }}"
+      /><br /><br />
+
+      <label for="batch_id">Batch ID:</label><br />
+      <input
+        type="number"
+        id="batch_id"
+        name="batch_id"
+        value="{{ batch_id }}"
+      /><br /><br />
+
+      <label for="controller_name">Controller名:</label><br />
+      <input
+        type="text"
+        id="controller_name"
+        name="controller_name"
+        value="{{ controller_name }}"
+      /><br /><br />
+
+      <button type="submit">送信</button>
+    </form>
+
+    <!-- サーバーから redirect_url が渡された場合のみ表示 -->
+    {% if redirect_url %}
+    <div class="result-box">
+        <h3>✅ 登録完了</h3>
+        <p>データが正常に登録されました。</p>
+        <ul>
+            <li><strong>Short ID:</strong> {{ short_id }}</li>
+            <li><strong>Generated URL:</strong> <br>
+                <a href="{{ redirect_url }}" class="url-link" target="_blank">{{ redirect_url }}</a>
+            </li>
+        </ul>
+        <p>※リンクをクリックすると詳細ページへ移動します。</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{# <!doctype html>
+<html>
+  <head>
+    <title>テストフォーム</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}" />
+  </head>
+  <body>
+    <h1>テストフォーム</h1>
+    <form method="post">
+      <label for="system_name">システム名:</label><br />
+      <input
+        type="text"
+        id="system_name"
+        name="system_name"
+        value="{{ system_name }}"
+      /><br /><br />
+
+      <label for="user_id">ユーザーID:</label><br />
+      <input
+        type="text"
+        id="user_id"
+        name="user_id"
+        value="{{ user_id }}"
+      /><br /><br />
+
+      <label for="batch_id">Batch ID:</label><br />
+      <input
+        type="number"
+        id="batch_id"
+        name="batch_id"
+        value="{{ batch_id }}"
+      /><br /><br />
+
+      <label for="controller_name">Controller名:</label><br />
+      <input
+        type="text"
+        id="controller_name"
+        name="controller_name"
+        value="{{ controller_name }}"
+      /><br /><br />
+
+      <button type="submit">送信</button>
+    </form>
+
+    {% if identifier_uuid %}
+    <h2>結果:</h2>
+    <p>生成されたUUID: {{ identifier_uuid }}</p>
+    <p>復元されたシステム名: {{ recovered_system_name }}</p>
+    <p>復元されたユーザーID: {{ recovered_user_id }}</p>
+    <p>復元された Batch ID: {{ recovered_batch_id }}</p>
+    <p>生成されたURL: {{ url }}</p>
+    {% endif %}
+  </body>
+</html> #}
