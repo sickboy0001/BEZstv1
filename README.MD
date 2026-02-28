@@ -707,6 +707,8 @@ Step8 結果登録
 
 
 ## History 
+- 2026/03/01
+  - GeminiAI調整
 - 2026/02/25
   - ホスト [CloudRun]([https://](https://bezstv1-420574500377.asia-northeast1.run.app/dashboard))
   - UI回り、APITest用のUi画面作成、Htmxの利用など開始
