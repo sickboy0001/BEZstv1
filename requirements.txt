@@ -15,3 +15,4 @@ pyyaml
 python-jose
 libsql-client
 cryptography
+google-generativeai
