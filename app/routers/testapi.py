@@ -74,6 +74,59 @@ async def read_turso_api_log(
 
 
 
+# @router.get("/Cleaning_post_api_test", response_class=HTMLResponse)
+# async def cleaning_post_api_test(
+#     request: Request,
+#     user = Depends(get_current_user),
+#     start_date: Optional[date] = Query(None),
+#     end_date: Optional[date] = Query(None)
+# ):
+#     print("cleaning_post_api_test:start")
+#     if not user:
+#         return RedirectResponse(url="/login")
+
+#     if start_date is None:
+#         start_date = date.today()
+#     if end_date is None:
+#         end_date = date.today()
+#     # print("userid:", user.id)
+
+#     context = {
+#         "request": request,
+#         "user": user,
+#         "user_id": user.id,
+#         "target_period": {
+#             "start_date": start_date.isoformat(),
+#             "end_date": end_date.isoformat(),
+#         },
+#         "post_ids": "",  # 初期値は空
+#         "target_condition_options": [
+#             {"value": "none", "label": "未処理のみ (unprocessed, requeue)"},
+#             {"value": "all", "label": "全データ強制再精査 (refined, completed含む)"}
+#         ],
+#         "loglevel_options": [
+#             {"value": "normal", "label": "Normal: ヘッダ・経緯のみ"},
+#             {"value": "detail", "label": "Detail: プロンプト・AI回答をフル保存"},
+#             {"value": "none", "label": "None: ログ保存なし"}
+#         ],
+#         "disp_options": [
+#             {"value": "none", "label": "全工程完遂"},
+#             {"value": "targets", "label": "工程4まで（対象抽出の確認）"},
+#             {"value": "airesult", "label": "工程7まで（AI回答の確認）"},
+#             {"value": "results", "label": "工程9まで（DB反映直前までの確認）"}
+#         ],
+#         # デフォルト選択値
+#         "default_target_condition": "none",
+#         "default_loglevel": "normal",
+#         "default_disp": "none",
+#     }
+#     # print("cleaning_post_api_test:end:" ,context)
+#     return templates.TemplateResponse(
+#         "api_test/cleaning_post_test.html",
+#         context
+#     )
+
+
 @router.get("/Cleaning_post_api_test", response_class=HTMLResponse)
 async def cleaning_post_api_test(
     request: Request,
@@ -81,7 +134,7 @@ async def cleaning_post_api_test(
     start_date: Optional[date] = Query(None),
     end_date: Optional[date] = Query(None)
 ):
-    print("cleaning_post_api_test:start")
+    print("cleaning_post_api_test2:start")
     if not user:
         return RedirectResponse(url="/login")
 
@@ -91,38 +144,17 @@ async def cleaning_post_api_test(
         end_date = date.today()
     # print("userid:", user.id)
 
-    context = {
-        "request": request,
-        "user": user,
-        "user_id": user.id,
-        "target_period": {
-            "start_date": start_date.isoformat(),
-            "end_date": end_date.isoformat(),
-        },
-        "post_ids": "",  # 初期値は空
-        "target_condition_options": [
-            {"value": "none", "label": "未処理のみ (unprocessed, requeue)"},
-            {"value": "all", "label": "全データ強制再精査 (refined, completed含む)"}
-        ],
-        "loglevel_options": [
-            {"value": "normal", "label": "Normal: ヘッダ・経緯のみ"},
-            {"value": "detail", "label": "Detail: プロンプト・AI回答をフル保存"},
-            {"value": "none", "label": "None: ログ保存なし"}
-        ],
-        "disp_options": [
-            {"value": "none", "label": "全工程完遂"},
-            {"value": "targets", "label": "工程4まで（対象抽出の確認）"},
-            {"value": "airesult", "label": "工程7まで（AI回答の確認）"},
-            {"value": "results", "label": "工程9まで（DB反映直前までの確認）"}
-        ],
-        # デフォルト選択値
-        "default_target_condition": "none",
-        "default_loglevel": "normal",
-        "default_disp": "none",
-    }
     # print("cleaning_post_api_test:end:" ,context)
     return templates.TemplateResponse(
         "api_test/cleaning_post_test.html",
-        context
+        {
+            "request": request,
+            "user": user,
+            "user_id": user.id,
+            "target_period": {
+                "start_date": start_date.isoformat(),
+                "end_date": end_date.isoformat(),
+            },
+        }
     )
-
+ 

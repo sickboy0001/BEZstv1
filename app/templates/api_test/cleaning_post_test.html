@@ -2,57 +2,11 @@
 block content %}
 <div class="container mt-4">
   <div class="d-flex align-items-center mb-4 border-bottom pb-3">
-    <h2 class="mb-0">システム実行トレースログ & APIテスト</h2>
+    <h2 class="mb-0">Cleaning_post_api_test2</h2>
   </div>
 
   <div class="row">
-    <div class="col-lg-3">
-      <div class="card shadow-sm mb-4">
-        <div class="card-header bg-secondary text-white fw-bold small">
-          <i class="bi bi-info-circle me-1"></i> 処理工程（Step）の定義
-        </div>
-        <ul class="list-group list-group-flush small">
-          <li
-            class="list-group-item d-flex justify-content-between align-items-start"
-          >
-            <div class="ms-2 me-auto">
-              <div class="fw-bold">1-4: 対象抽出</div>
-              <span class="text-muted small">DBからポストを抽出</span>
-            </div>
-            <span class="badge bg-info rounded-pill small">targets</span>
-          </li>
-          <li
-            class="list-group-item d-flex justify-content-between align-items-start"
-          >
-            <div class="ms-2 me-auto">
-              <div class="fw-bold">5-7: AI精査</div>
-              <span class="text-muted small">プロンプト・回答取得</span>
-            </div>
-            <span class="badge bg-info rounded-pill small">airesult</span>
-          </li>
-          <li
-            class="list-group-item d-flex justify-content-between align-items-start"
-          >
-            <div class="ms-2 me-auto">
-              <div class="fw-bold">8-9: 最終検証</div>
-              <span class="text-muted small">反映直前データ作成</span>
-            </div>
-            <span class="badge bg-info rounded-pill small">results</span>
-          </li>
-          <li
-            class="list-group-item d-flex justify-content-between align-items-start bg-light"
-          >
-            <div class="ms-2 me-auto">
-              <div class="fw-bold">10: 完了</div>
-              <span class="text-muted small">DB更新完了</span>
-            </div>
-            <span class="badge bg-success rounded-pill small">none</span>
-          </li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="col-lg-9">
+    <div class="col-lg-12">
       {% if error %}
       <div class="alert alert-danger mb-4">{{ error }}</div>
       {% endif %}
@@ -83,23 +37,25 @@ block content %}
             </div>
 
             <div class="card border-primary-subtle mb-4">
-              <div class="card-body bg-white">
-                <div class="mb-4">
-                  <h6 class="fw-bold text-secondary">
-                    <i class="bi bi-calendar-range me-1"></i>期間指定
-                  </h6>
-                  <div class="row g-3">
-                    <div class="col-md-6">
-                      <label class="form-label small text-muted">開始日</label>
+              <div class="card-body bg-white py-2">
+                <!-- Row 1: B-1 期間指定 -->
+                <div class="row g-2 align-items-center mb-2">
+                  <div class="col-auto" style="min-width: 120px">
+                    <span class="fw-bold text-secondary small"
+                      ><i class="bi bi-calendar-range me-1"></i>B-1: 期間
+                      (date_start, date_end)</span
+                    >
+                  </div>
+                  <div class="col">
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text">開始</span>
                       <input
                         type="date"
                         id="startDate"
                         class="form-control"
                         value="{{ target_period.start_date }}"
                       />
-                    </div>
-                    <div class="col-md-6">
-                      <label class="form-label small text-muted">終了日</label>
+                      <span class="input-group-text">終了</span>
                       <input
                         type="date"
                         id="endDate"
@@ -110,76 +66,175 @@ block content %}
                   </div>
                 </div>
 
-                <hr class="text-secondary opacity-25" />
-
-                <div>
-                  <div
-                    class="d-flex justify-content-between align-items-center"
-                  >
-                    <h6 class="fw-bold text-secondary mb-0">
-                      <i class="bi bi-list-check me-1"></i>ID指定
-                    </h6>
-                    <button
-                      type="button"
-                      class="btn btn-sm btn-outline-primary"
-                      hx-get="/api/ui/post-selector"
-                      hx-target="#modal-container"
-                      hx-swap="innerHTML"
+                <!-- Row 2: B-2 ID指定 -->
+                <div class="row g-2 align-items-center mb-2">
+                  <div class="col-auto" style="min-width: 120px">
+                    <span class="fw-bold text-secondary small"
+                      ><i class="bi bi-list-check me-1"></i>B-2: ID
+                      (target_post_ids)</span
                     >
-                      <i class="bi bi-search"></i> 選択
-                    </button>
                   </div>
-                  <div class="mt-2">
-                    <label class="form-label small text-muted"
-                      >特定Post ID指定（カンマ区切り）</label
+                  <div class="col">
+                    <div class="input-group input-group-sm">
+                      <input
+                        type="text"
+                        id="postIds"
+                        class="form-control"
+                        placeholder="例: 101, 102 (カンマ区切り)"
+                      />
+                      <button
+                        class="btn btn-outline-secondary"
+                        type="button"
+                        hx-get="/api/ui/post-selector"
+                        hx-target="#modal-container"
+                        hx-swap="innerHTML"
+                      >
+                        <i class="bi bi-search"></i> 選択
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Row 3: B-3 再問い合わせ -->
+                <div class="row g-2 align-items-center">
+                  <div class="col-auto" style="min-width: 120px">
+                    <span class="fw-bold text-secondary small"
+                      >B-3: 再処理 (is_force_reprocess)</span
                     >
-                    <textarea
-                      id="postIds"
-                      class="form-control"
-                      rows="2"
-                      placeholder="例: 101, 102"
-                    ></textarea>
+                  </div>
+                  <div class="col">
+                    <select
+                      id="is_force_reprocess"
+                      class="form-select form-select-sm"
+                    >
+                      <option value="false" selected>未処理分のみ</option>
+                      <option value="true">処理済みも対象</option>
+                    </select>
                   </div>
                 </div>
               </div>
             </div>
 
+            <!-- Row: C (実行モード) & E, F (DB設定) -->
+            <div class="row g-3 mb-3 align-items-end">
+              <div class="col-md-5">
+                <label class="form-label small fw-bold text-info"
+                  >C: 実行モード (is_dry_run_only)</label
+                >
+                <div class="d-flex gap-3 mt-1">
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="is_dry_run_only"
+                      id="mode_result"
+                      value="mode_result"
+                      checked
+                      onchange="handleDryRunMode(this.value)"
+                    />
+                    <label class="form-check-label" for="mode_result"
+                      >結果登録</label
+                    >
+                  </div>
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="is_dry_run_only"
+                      id="mode_ai"
+                      value="mode_ai"
+                      checked
+                      onchange="handleDryRunMode(this.value)"
+                    />
+                    <label class="form-check-label" for="mode_ai">AI実行</label>
+                  </div>
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="is_dry_run_only"
+                      id="mode_script"
+                      value="mode_script"
+                      onchange="handleDryRunMode(this.value)"
+                    />
+                    <label class="form-check-label" for="mode_script"
+                      >スクリプト作成のみ</label
+                    >
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-7">
+                <label class="form-label small fw-bold text-muted"
+                  >DB登録設定 (モード連動)</label
+                >
+                <div class="card bg-light-subtle border-0">
+                  <div class="card-body py-2 d-flex align-items-center gap-3">
+                    <div class="form-check form-switch mb-0">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        id="is_enable_batch_log"
+                        checked
+                        onchange="syncPostRefinementFlag()"
+                      />
+                      <label
+                        class="form-check-label small"
+                        for="is_enable_batch_log"
+                        >E: バッチログ (is_enable_batch_log)</label
+                      >
+                    </div>
+                    <div class="form-check form-switch mb-0">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        id="is_enable_post_refinement"
+                        checked
+                      />
+                      <label
+                        class="form-check-label small"
+                        for="is_enable_post_refinement"
+                        >F: ポスト結果 (is_enable_post_refinement)</label
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Row: D (ログ詳細度) -->
             <div class="row g-3">
               <div class="col-md-4">
-                <label class="form-label small fw-bold">精査対象の状態</label>
-                <select id="targetCondition" class="form-select">
-                  {% for option in target_condition_options %} {% set
-                  is_selected = 'selected' if option.value ==
-                  default_target_condition else '' %}
-                  <option value="{{ option.value }}" {{ is_selected }}>
-                    {{ option.label }}
-                  </option>
-                  {% endfor %}
-                </select>
-              </div>
-              <div class="col-md-4">
-                <label class="form-label small fw-bold">ログ詳細度</label>
-                <select id="loglevel" class="form-select">
-                  {% for option in loglevel_options %} {% set is_selected =
-                  'selected' if option.value == default_loglevel else '' %}
-                  <option value="{{ option.value }}" {{ is_selected }}>
-                    {{ option.label }}
-                  </option>
-                  {% endfor %}
-                </select>
-              </div>
-              <div class="col-md-4">
-                <label class="form-label small fw-bold text-info"
-                  >停止ポイント</label
+                <label class="form-label small fw-bold"
+                  >D: ログ詳細度 (log_level_type)</label
                 >
-                <select id="disp" class="form-select border-info fw-bold">
-                  {% for option in disp_options %} {% set is_selected =
-                  'selected' if option.value == default_disp else '' %}
-                  <option value="{{ option.value }}" {{ is_selected }}>
-                    {{ option.label }}
-                  </option>
-                  {% endfor %}
-                </select>
+                <div class="d-flex gap-3 mt-1">
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="log_level_type"
+                      id="log_normal"
+                      value="normal"
+                      checked
+                    />
+                    <label class="form-check-label" for="log_normal"
+                      >Normal</label
+                    >
+                  </div>
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="log_level_type"
+                      id="log_detail"
+                      value="detail"
+                    />
+                    <label class="form-check-label" for="log_detail"
+                      >Detail</label
+                    >
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -217,11 +272,76 @@ block content %}
     </div>
   </div>
 
+  <!-- Prompt Modal -->
+  <div
+    class="modal fade"
+    id="promptModal"
+    tabindex="-1"
+    aria-labelledby="promptModalLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="promptModalLabel">Prompt Content</h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <pre
+            id="promptModalContent"
+            style="white-space: pre-wrap; word-wrap: break-word"
+          ></pre>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
   <!-- Modal Container for HTMX -->
   <div id="modal-container"></div>
 </div>
 {% endblock %} {% block scripts %}
 <script>
+  // EがOFFならFを強制OFFにするロジック
+  function syncPostRefinementFlag() {
+    const e = document.getElementById("is_enable_batch_log");
+    const f = document.getElementById("is_enable_post_refinement");
+    if (!e.checked) {
+      f.checked = false;
+      f.disabled = true;
+    } else {
+      f.disabled = false;
+    }
+  }
+  // CがONならD,E,Fを無効化するロジック
+  function handleDryRunMode(val) {
+    const isC = val === "mode_script";
+
+    // E, F: DB設定 (Checkbox)
+    const targets = ["is_enable_batch_log", "is_enable_post_refinement"];
+    targets.forEach((id) => {
+      const el = document.getElementById(id);
+      if (isC) {
+        el.checked = false;
+        el.disabled = true;
+      } else {
+        el.disabled = false;
+        if (id === "is_enable_batch_log") syncPostRefinementFlag();
+      }
+    });
+  }
   async function callApi() {
     const btn = document.getElementById("execBtn");
     const resultArea = document.getElementById("result-area");
@@ -235,24 +355,34 @@ block content %}
     statusMsg.className = "mb-2 fw-bold";
     statusMsg.textContent = "通信中...";
     jsonOutput.textContent = "";
-
     const payload = {
       user_id: document.getElementById("userId").value,
-      target_period: {
-        start_date: document.getElementById("startDate").value,
-        end_date: document.getElementById("endDate").value,
-      },
-      post_ids: (function () {
+      date_start: document.getElementById("startDate").value,
+      date_end: document.getElementById("endDate").value,
+      target_post_ids: (function () {
         const raw = document.getElementById("postIds").value;
-        if (!raw || raw.trim() === "") return null;
+        if (!raw || raw.trim() === "") return [];
         return raw
           .split(",")
           .map((s) => Number(s.trim()))
           .filter((n) => !isNaN(n));
       })(),
-      target_condition: document.getElementById("targetCondition").value,
-      loglevel: document.getElementById("loglevel").value,
-      disp: document.getElementById("disp").value,
+      is_force_reprocess:
+        document.getElementById("is_force_reprocess").value === "true",
+      is_dry_run_only:
+        document.querySelector('input[name="is_dry_run_only"]:checked')
+          .value === "true",
+      log_level_type: document.querySelector(
+        'input[name="log_level_type"]:checked',
+      ).value,
+      is_enable_batch_log: document.getElementById("is_enable_batch_log")
+        .checked,
+      is_enable_post_refinement: document.getElementById(
+        "is_enable_post_refinement",
+      ).checked,
+      action_mode: document.querySelector(
+        'input[name="is_dry_run_only"]:checked',
+      ).value,
     };
 
     try {
@@ -270,7 +400,21 @@ block content %}
         statusMsg.textContent = `エラー (${response.status}): ${data.detail || "不明なエラー"}`;
         statusMsg.classList.add("text-danger");
       }
-      jsonOutput.textContent = JSON.stringify(data, null, 2);
+      // jsonOutput.textContent = JSON.stringify(data, null, 2);
+      const jsonString = JSON.stringify(data, null, 2);
+      const highlightedJson = jsonString.replace(
+        /"prompt": "((?:\\.|[^"\\])*)"/g,
+        (match, promptContent) => {
+          const decodedContent = JSON.parse(`"${promptContent}"`);
+          // data-prompt-content='...' の中に入れるので、シングルクォートをエスケープする
+          const attributeValue = JSON.stringify(decodedContent).replace(
+            /'/g,
+            "&#39;",
+          );
+          return `"prompt": "<a href='#' data-prompt-content='${attributeValue}' onclick='showPromptModal(this.dataset.promptContent); return false;'>(Click to view)</a>"`;
+        },
+      );
+      jsonOutput.innerHTML = highlightedJson;
     } catch (error) {
       statusMsg.textContent = `通信エラー: ${error.message}`;
       statusMsg.classList.add("text-danger");
@@ -278,6 +422,18 @@ block content %}
       btn.disabled = false;
       btn.innerHTML =
         '<i class="bi bi-lightning-charge-fill me-2"></i>実行する';
+    }
+  }
+
+  function showPromptModal(jsonStringContent) {
+    try {
+      const content = JSON.parse(jsonStringContent);
+      document.getElementById("promptModalContent").textContent = content;
+      const modal = new bootstrap.Modal(document.getElementById("promptModal"));
+      modal.show();
+    } catch (e) {
+      console.error("Failed to parse prompt content:", e, jsonStringContent);
+      alert("プロンプト内容の表示に失敗しました。");
     }
   }
 

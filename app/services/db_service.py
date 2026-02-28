@@ -11,6 +11,7 @@ def get_datefromto_posts(db: Session, userid: str, start_date: date, end_date: d
     """
     query = text("""
       SELECT 
+        id,
         current_at ,
         title ,
         content ,
@@ -38,6 +39,7 @@ def get_postids_posts(db: Session,userid: str,postids: List[int],  limit: int = 
 
     query = text("""
       SELECT 
+        id,
         current_at ,
         title ,
         content ,
