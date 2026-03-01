@@ -11,14 +11,19 @@ class URLGenerator:
         # 環境に基づいてホスト名を設定します。
         self.host_names = {
             "local": "http://localhost:8000",
-            "production": "https://gemini.google.com",
+            "production": "https://bezstv1-420574500377.asia-northeast1.run.app/",
             # 他の環境もここに追加できます
         }
         self.host_name = self.host_names.get(self.environment, "http://localhost:8000")  # デフォルトはローカル
 
-    def generate_url(self, controller_name, batch_id):
+    def generate_url(self, controller_name, batch_id,taget_host_name=None):
+        # host_name：
+        # 例）http://localhost:8000 
+        #     https://bezstv1-420574500377.asia-northeast1.run.app/
+        # 　  など
         # URLを生成します。
-        return f"{self.host_name}/{controller_name}/{batch_id}"
+        host = taget_host_name if taget_host_name else self.host_name
+        return f"{host}/{controller_name}/{batch_id}"
 
 # 短いIDを生成する関数
 def generate_short_id(uuid_str):

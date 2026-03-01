@@ -46,7 +46,8 @@ async def test_submit(
         db.refresh(db_uuid_mapping)
 
         # リダイレクトURLの生成
-        redirect_url = f"/app/{short_id}"
+        url_generator = URLGenerator()
+        redirect_url = url_generator.generate_url("app", short_id)
         print (f"Generated short_id: {short_id}, redirect_url: {redirect_url}")
 
         # テンプレートに渡すデータ
