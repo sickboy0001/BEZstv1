@@ -33,7 +33,13 @@ async def dashboard(request: Request, user = Depends(get_current_user)):
             "name": "mail-test",
             "url": "/docs",
             "description": "docsのtest-mail notify_testからの投稿可能"
-        },    ]
+        },    
+        {
+            "name": "typo-log-list",
+            "url": "/ai/typo/list",
+            "description": "Typo修正のAIログのリストを表示します。TursoDBからユーザーIDに紐づくログを取得して表示するテスト用です。"
+        },    
+        ]
         
     return templates.TemplateResponse(
         "dashboard.html", 
