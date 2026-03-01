@@ -8,7 +8,7 @@
 - [📂 ディレクトリ構成](#-ディレクトリ構成)
 - [🚢 デプロイフロー](#-デプロイフロー)
 - [`zstu_posts`](#zstu_posts)
-  - [zstu\_posts:state\_detail](#zstu_postsstate_detail)
+  - [zstu\_posts:state\_details](#zstu_postsstate_details)
 - [ログ周り](#ログ周り)
   - [A. API\_Logs（共通アクセスログ）](#a-api_logs共通アクセスログ)
   - [B. Task\_Progress\_Logs（目的別・処理進捗ログ）](#b-task_progress_logs目的別処理進捗ログ)
@@ -17,43 +17,27 @@
   - [この構成で実現できること](#この構成で実現できること)
     - [③ サービス層での利用：`app/services/item_service.py`](#-サービス層での利用appservicesitem_servicepy)
     - [④ ルーター層での利用：`app/routers/item_router.py`](#-ルーター層での利用approutersitem_routerpy)
-- [AI利用してのポストのタイポ](#ai利用してのポストのタイポ)
-  - [UIと基本プロセス](#uiと基本プロセス)
-    - [step 1 ログインする（既存機能）](#step-1-ログインする既存機能)
-    - [Step 2: UI/API 条件指定 (Input Parameters)](#step-2-uiapi-条件指定-input-parameters)
-    - [Step 3: 対象ポスト取得 (Fetch Posts)](#step-3-対象ポスト取得-fetch-posts)
-    - [Step 4: プロンプト構築 (Build Prompt)](#step-4-プロンプト構築-build-prompt)
-    - [Step 5 : AI問い合わせ (Execution \& Logging)](#step-5--ai問い合わせ-execution--logging)
-    - [Step 6: AI結果受領 (Execution \& Logging)](#step-6-ai結果受領-execution--logging)
-    - [step 7 結果の送信](#step-7-結果の送信)
-    - [Step 8 結果の確認](#step-8-結果の確認)
-  - [📊 ログの活用（※1）](#-ログの活用1)
-  - [🔄 状態遷移の確定](#-状態遷移の確定)
-  - [関連するテーブル `zstu_posts`](#関連するテーブル-zstu_posts)
-    - [B.`zstu_posts`](#bzstu_posts)
-    - [state\_detail　](#state_detail)
-    - [B. 個別ポスト精査テーブル (`zstu_post_refinements`)](#b-個別ポスト精査テーブル-zstu_post_refinements)
+  - [3. なぜこの構成が良いのか？](#3-なぜこの構成が良いのか)
+- [ポストの分析状況](#ポストの分析状況)
+  - [1. API Input（引数）](#1-api-input引数)
+  - [output](#output)
+  - [2. Process（処理フローとログ・状態制御）](#2-process処理フローとログ状態制御)
+  - [3. 設計の重要ポイント](#3-設計の重要ポイント)
+    - [⚠️ `disp` 指定時の競合回避（安全策）](#️-disp-指定時の競合回避安全策)
+    - [📊 ログの活用（※1）](#-ログの活用1)
+    - [🔄 状態遷移の確定](#-状態遷移の確定)
+  - [A. 個別ポスト精査テーブル (`zstu_post_refinements`)](#a-個別ポスト精査テーブル-zstu_post_refinements)
+      - [3. 実装上のアドバイス：ステータス管理のコツ](#3-実装上のアドバイスステータス管理のコツ)
+      - [`disp` (検証モード) の扱い](#disp-検証モード-の扱い)
+      - [4. ログレベル (`loglevel`) の落とし所](#4-ログレベル-loglevel-の落とし所)
 - [🚀 AI週間評価API 設計案](#-ai週間評価api-設計案)
   - [1. Input (引数)](#1-input-引数)
   - [2. Process (ロジックフロー)](#2-process-ロジックフロー)
   - [3. Output (レスポンス)](#3-output-レスポンス)
-  - [週次評価結果を保存するテーブル（案）](#週次評価結果を保存するテーブル案)
-- [関連するテーブル](#関連するテーブル)
-  - [`zstu_tag_descriptions`](#zstu_tag_descriptions)
-    - [1. `is_active` (論理削除・有効化)](#1-is_active-論理削除有効化)
-    - [2. `is_send_ai` (AI送信フラグ) ※「is\_sendai」の解釈](#2-is_send_ai-ai送信フラグ-is_sendaiの解釈)
-    - [3. `display_order` (表示順)](#3-display_order-表示順)
-    - [4. `created_at` / `updated_at` (タイムスタンプ)](#4-created_at--updated_at-タイムスタンプ)
-  - [`ai_Batches`](#ai_batches)
-  - [`ai_Execution_Logs`](#ai_execution_logs)
-    - [1. `api_version` の重要性](#1-api_version-の重要性)
-    - [2. `duration_ms` (実行時間) の重要性](#2-duration_ms-実行時間-の重要性)
-  - [`zstu_post_refinements`](#zstu_post_refinements)
-  - [`prompt_templates`](#prompt_templates)
-  - [`prompt_versions`](#prompt_versions)
+- [週次評価結果を保存するテーブル（案）](#週次評価結果を保存するテーブル案)
+- [サマリをAIに問い合わせる動き](#サマリをaiに問い合わせる動き)
 - [todo](#todo)
 - [History](#history)
-
 
 
 ## 🚀 プロジェクト概要
@@ -192,9 +176,9 @@ docker run --rm -p 8000:10000 --env-file .env --name my-test-container testlogin
 | **write_end_at** | 執筆終了日時 | `timestamp` | - | `CURRENT_TIMESTAMP` |  |
 | **created_at** | 作成日時 | `timestamp` | ◯ | `CURRENT_TIMESTAMP` | レコード作成日 |
 | **updated_at** | 更新日時 | `timestamp` | ◯ | `CURRENT_TIMESTAMP` | レコード更新日 |
-| **state_detail** | 状態の詳細 | **`jsonb`** | - |  | AI連携の詳細 |
+| **state_details** | 状態の詳細 | **`jsonb`** | - |  | AI連携の詳細 |
 
-### zstu_posts:state_detail
+### zstu_posts:state_details
 
 AIへの要求などの最終的な状態
 
@@ -395,174 +379,110 @@ async def create_item(
 ---
 
 
+### 3. なぜこの構成が良いのか？
+
+1. **テストがしやすい**:
+テスト時に Turso へ接続したくない場合、`get_logger` をオーバーライドして「何もしないロガー」や「CSVだけのロガー」に簡単に差し替えられます。
+2. **設定の一元管理**:
+`main.py`（または `config.py`）で Turso の接続情報を管理するため、環境変数 (`.env`) との連携がスムーズです。
+3. **疎結合**:
+`item_service.py` 自体は「どうやってログを保存するか」を知る必要がなく、「渡されたロガーの `.log()` を呼ぶ」だけで済みます。
 
 
-## AI利用してのポストのタイポ
+## ポストの分析状況
 
-- ポストは定期的に、AIでの整形を予定しています。
-- １時間に一回生成AIへの要求されていないものがあれば、
-- それを要求対象にする動きを想定しています。
-- ユーザーにAIでのポストしたことは連携必要
-- 画面でも確認できる状態になる。
-- そのためには各ポストの状況が必要で、そのための設定については以下のとおりとする。
+ポストは定期的に、AIでの整形を予定しています。
+１時間に一回生成AIへの要求されていないものがあれば、
+それを要求対象にする動きを想定しています。
+そのためには各ポストの状況が必要で、そのための設定については以下のとおりとする。
 
 
+|日本語の状態|推奨する英語定数 (Status)|説明・補足|
+|:----|:----|:----|
+|なし|unprocessed|まだ何もしていない初期状態。|
+|再要求|pending_requeue|ユーザーが「やり直し」を求めた状態。次回のバッチ対象。|
+|要求中|processing|AIにリクエストを投げた直後、または実行中。|
+|受領済み|refined|AIの回答が届き、ユーザーの確認を待っている状態。|
+|登録済み（更新あり）|completed_with_edit|AIの結果を元にユーザーが修正して確定させた。|
+|登録済み|completed|AIの結果をそのまま確定させた。|
 
-### UIと基本プロセス
-
-#### step 1 ログインする（既存機能）
-#### Step 2: UI/API 条件指定 (Input Parameters)
-
-UIから渡される、またはAPI引数として定義する変数名です。
-
-| 項目 | 変数名 (Python形式) | 型 | デフォルト / 備考 |
-| --- | --- | --- | --- |
-| **A: ユーザーID** | `user_id` | `uuid` | ログインセッションから取得 |
-| **B-1: 期間指定** | `date_start`, `date_end` | `date` | 対象期間（22日〜28日など） |
-| **B-2: ポスト個別指定** | `target_post_ids` | `list[int]` | 空リストなら全件対象/ポスト検索時はRead:zstu_posts |
-| **B-3: 再問い合わせ** | `is_force_reprocess` | `bool` | `True`なら`refined`済みも対象 |
-| **C: 実行モード** | `action_mode` | `str` | `mode_script` , `mode_ai` , `mode_result` |
-| **D: ログ詳細度** | `log_level_type` | `str` | `normal`, `detail`, `none` |
-| **E: バッチログ登録** | `is_enable_batch_log` | `bool` | `ai_batches` への登録有無 |
-| **F: ポスト毎結果登録** | `is_enable_post_refinement` | `bool` | `zstu_post_refinements` への登録 |
-
-**バリデーション・連動ロジック:**
-
-* mode_script スクリプトの作成まで
-* mode_ai　aiの問い合わせまで
-* mode_result 結果の登録まで
-* `if not is_enable_batch_log:` → `is_enable_post_refinement = False`
-
-- Z:「開始」ボタン
-  - 参照情報として、対象のプロンプトを確認できること
-
-**バリデーション・連動ロジック:**
-
-* `if is_dry_run_only:` → `log_level_type = 'none'`, `is_enable_batch_log = False`, `is_enable_post_refinement = False`
-* `if not is_enable_batch_log:` → `is_enable_post_refinement = False`
-
-
-#### Step 3: 対象ポスト取得 (Fetch Posts)
-
-1. **検索実行**: `date_start` 〜 `date_end` の範囲で `zstu_posts` を検索。
-2. **フィルタリング**:
-* `target_post_ids` が指定されていれば、そのIDで絞り込み。
-* `is_force_reprocess == False` の場合、`state_detail -> ai_refinement -> status` が `unprocessed` または `pending_requeue` のもののみを抽出。
-* 変数 `target_posts` (List[Dict]) に格納。
-
-- 検索条件に合致する件数を API_Logs に記録。
-- status: processing へ一括更新。他プロセスからの割り込みを防止。
-- 
-#### Step 4: プロンプト構築 (Build Prompt)
-
-1. **マスタ取得**: `prompt_versions` から `is_active=True` のテンプレートを取得。
-2. **タグ情報取得**: `zstu_tag_descriptions` から `is_send_ai=True` のタグを取得し、コンテキスト用文字列 `tag_context` を作成。
-3. **プロンプト生成**: テンプレート内の変数（`{{posts}}`, `{{tags}}` 等）を `target_posts` と `tag_context` で置換。
-* 変数名: `final_prompt_text`
-
-1. **早期リターン**: `is_dry_run_only == True` の場合、ここで `final_prompt_text` をレスポンスとして終了。
-
-
-#### Step 5 : AI問い合わせ (Execution & Logging)
-
-1. **バッチ開始記録**: `is_enable_batch_log == True` なら `ai_batches` にレコード作成。
-* 戻り値: `current_batch_id`
-
-
-2. **AIリクエスト**: Google AI Studioへ `final_prompt_text` を送信。
-3. **実行ログ記録**: `ai_execution_logs` に `prompt_template`, `raw_input_json`, `model_info` 等を保存。
-4. **個別結果保存**: `is_enable_post_refinement == True` なら、AIの返答をパースし、各ポストに対して `zstu_post_refinements` に `INSERT`。
-
-
-#### Step 6: AI結果受領 (Execution & Logging)
-
-- 「Step5」の結果受領記録 (Execution & Logging)
-
-1. **実行ログ記録**: `ai_execution_logs` に `prompt_template`, `raw_input_json`, `model_info` 等を保存。
-2. **個別結果保存**: `is_enable_post_refinement == True` なら、AIの返答をパースし、各ポストに対して `zstu_post_refinements` に `INSERT`。
-* 同時に `zstu_posts.state_detail` の `status` を `refined` に `UPDATE`。
-
-- status: refined へ更新。一連の trace_id を付与。
-
-#### step 7 結果の送信
-- 「F」がONの場合は、その結果をメールで送信（ひとまずはログで）
-  - insert:api_logs
-  - insert:task_progress_logs
-#### Step 8 結果の確認
-- 「Step 7」を承認するなどの微調整して登録
-  - 「F」がOFF対象のPostなし。
-  - update:zstu_posts.ai_refinement
-
-
-### 📊 ログの活用（※1）
-
-`loglevel=detail` の場合、ステップ4のプロンプトとステップ7のAI回答を `API_Logs` に残します。これにより、「AIが変な回答をした」ときに、どのプロンプトが悪かったのか後から完全に再現・調査可能になります。
-
-### 🔄 状態遷移の確定
-
-ステップ9で `refined` になったタイミングで、ユーザー画面（フロントエンド）に「精査完了」のバッジが表示されるようになります。
-
-
-
-
-### 関連するテーブル `zstu_posts` 
-#### B.`zstu_posts`
-
-| カラム物理名 | 論理名 | データ型 | 必須 | デフォルト / 制約 | 備考 |
-| --- | --- | --- | --- | --- | --- |
-| **id** | 投稿ID | `serial` | ◯ | PRIMARY KEY | 自動採番 |
-| **user_id** | ユーザーID | **`uuid`** | ◯ |  | 投稿者の識別子 (auth.users.id) |
-| **current_at** | 基準日時 | `timestamp` | - | `CURRENT_TIMESTAMP` | 投稿の対象日・時刻 |
-| **title** | タイトル | `text` | ◯ |  |  |
-| **content** | 本文 | `text` | ◯ |  |  |
-| **tags** | タグリスト | **`text[]`** | ◯ | **`'{}'`** | タグの配列。検索用GINインデックス推奨 |
-| **source_type** | 連携元種別 | `varchar` | - |  | `observation`, `hadbit` 等 |
-| **source_key** | 連携元キー | **`text`** | - | **UNIQUE (type, key)** | 連携元のID (Int/UUID等を保持) |
-| **source_detail** | 連携元詳細 | **`jsonb`** | - |  | 連携元特有の情報 (距離、単位、銘柄等) |
-| **second** | 所要秒数 | `integer` | ◯ | `0` | 執筆や実施にかかった秒数 |
-| **public_flg** | 公開フラグ | `boolean` | ◯ | `true` | 全体公開設定 |
-| **public_content_flg** | 内容公開フラグ | `boolean` | ◯ | `true` | コンテンツ部分の公開設定 |
-| **delete_flg** | 削除フラグ | `boolean` | ◯ | `false` | 論理削除フラグ |
-| **write_start_at** | 執筆開始日時 | `timestamp` | - | `CURRENT_TIMESTAMP` |  |
-| **write_end_at** | 執筆終了日時 | `timestamp` | - | `CURRENT_TIMESTAMP` |  |
-| **created_at** | 作成日時 | `timestamp` | ◯ | `CURRENT_TIMESTAMP` | レコード作成日 |
-| **updated_at** | 更新日時 | `timestamp` | ◯ | `CURRENT_TIMESTAMP` | レコード更新日 |
-| **state_detail** | 状態の詳細 | **`jsonb`** | - |  | AI連携の詳細 |
-
-#### state_detail　
-* AIへの要求状態をもつ
-* AIへの要求などの最終的な状態
-
-* **ai_request.status**
-
-| 日本語の状態 | 推奨する英語定数 (Status) | 説明・補足 |
-| :--- | :--- | :--- |
-| なし | unprocessed | まだ何もしていない初期状態。 |
-| 再要求 | pending_requeue | ユーザーが「やり直し」を求めた状態。次回のバッチ対象。 |
-| 要求中 | processing | AIにリクエストを投げた直後、または実行中。 |
-| 受領済み | refined | AIの回答が届き、ユーザーの確認を待っている状態。 |
-| 登録済み（更新あり） | completed_with_edit | AIの結果を元にユーザーが修正して確定させた。 |
-| 登録済み | completed | AIの結果をそのまま確定させた。 |
 
 「なし」「再要求」の場合は、１時間ごとのタスクで生成AIへの要求実施
 「要求中」「受領済み」「 登録済み（更新あり）」「登録済み」の物は、一度AIに問い合わせ済なので、対象外とする。
 
 ```json
-{
+  {
   "ai_request": {
-    "status": "refined",
-    "updated_at": "2026-02-26T14:00:00Z",
-    "is_fixed": false,
-    "last_refinement_id": 1234,
+    "status": "processing",
+    "updated_at": "2026-02-24T18:00:00Z",
+    "retry_count": 0,
     "last_error": null,
     "refined_content": "..." 
-  }
-}
-
+    }
+　}
 ```
 
+### 1. API Input（引数）
 
-#### B. 個別ポスト精査テーブル (`zstu_post_refinements`)
+| カテゴリ | 引数名 | 型 | デフォルト値 | 説明 |
+| --- | --- | --- | --- | --- |
+| **必須** | `user_id` | UUID | - | 実行ユーザーの識別子 |
+| **必須** | `date_start, date_end` | Object | - | 開始日〜終了日の指定 |
+| **オプション** | `target_post_ids` | List[ID] | `null` | 特定のポストのみを狙い撃ちで精査する場合に指定 |
+| **オプション** | `target_condition` | String | `none` | `none`: 未処理(`unprocessed`, `requeue`)のみ<br>`all`: 全データ(`refined`, `completed`込)を強制再精査 |
+| **オプション** | `loglevel` | String | `normal` | `detail`: プロンプト・AI回答をフル保存<br>`normal`: ヘッダ・経緯のみ<br>`none`: ログ保存なし |
+| **オプション** | `disp` | String | `none` | `none`: 全工程完遂<br>`targets`: 工程4まで（対象抽出の確認）<br>`results`: 工程9まで（DB反映直前までの確認） |
+
+
+### output
+ 結果のUUID
+
+### 2. Process（処理フローとログ・状態制御）
+
+`disp` の値によって、**状態更新（processing）をスキップ**し、安全に検証できるロジックを組み込んでいます。
+
+| ステップ | 処理内容 | `API_Logs` (※1) | `Detail` 状態更新 | 備考 |
+| --- | --- | --- | --- | --- |
+| **1** | Postの検索・抽出 | 検索ヒット件数 | - | `target_condition` に基づく |
+| **2** | テンプレート入手 | - | - | プロンプトの雛形取得 |
+| **3** | タグ情報入手 | - | - | タグメンテナンス情報 |
+| **4** | プロンプト作成 | 作成済みプロンプト | - | **`disp=targets` の場合ここで終了** |
+| **5** | **実行予約** | 予約成功件数 | **`processing`** | **`disp` が `none` 以外ならスキップ** |
+| **6** | GoogleAIStudio依頼 | リクエスト送信時刻 | - | Gemini API呼び出し |
+| **7** | 結果の受領 | AI回答データ(Raw) | - | **`disp=airesult` の場合ここで終了** |
+| **8** | 結果のデータ整形 | 整形後データ | - | DB登録用フォーマットへの変換 |
+| **9** | **結果のDB登録** | 登録成功件数 | **`refined`** | **`disp=results` の場合ここで終了** |
+| **10** | UUID返却 | 最終ステータス | - | `trace_id` をフロントに返却 |
+
+
+|プロセス|内容|詳細|
+|:----|:----|:----|
+|1-3|準備|検索条件に合致する件数を API_Logs に記録。|
+|4|プロンプト作成|disp=targets の場合ここで終了。 ログにプロンプト案を保存。|
+|5|状態更新|status: processing へ一括更新。他プロセスからの割り込みを防止。|
+|6-7|AI通信|通信エラー時のリトライ回数、AIのレスポンス時間を計測。|
+|8|結果登録|Detail 列に AI結果を一時保存。disp=airesult ならここで停止。|
+|9|確定更新|status: refined へ更新。一連の trace_id を付与。|
+|10|完了|最終的な成功/失敗数を返し、処理終了。|
+
+
+### 3. 設計の重要ポイント
+
+#### ⚠️ `disp` 指定時の競合回避（安全策）
+
+アドバイス通り、`disp` が `none`（本番実行）以外のときは、ステップ5の **`processing` 更新をスキップ** します。これにより、「1時間ごとのバッチ」が動いても、検証中のデータが「実行中」としてロックされることがなく、安全にテストできます。
+
+#### 📊 ログの活用（※1）
+
+`loglevel=detail` の場合、ステップ4のプロンプトとステップ7のAI回答を `API_Logs` に残します。これにより、「AIが変な回答をした」ときに、どのプロンプトが悪かったのか後から完全に再現・調査可能になります。
+
+#### 🔄 状態遷移の確定
+
+ステップ9で `refined` になったタイミングで、ユーザー画面（フロントエンド）に「精査完了」のバッジが表示されるようになります。
+
+
+
+### A. 個別ポスト精査テーブル (`zstu_post_refinements`)
 
 1つの投稿に対するAIの整形・精査結果を管理します。
 
@@ -590,7 +510,6 @@ UIから渡される、またはAPI引数として定義する変数名です。
 
 - `ai_request` -> 不要、一括処理時の識別からたどれるので
 - `ai_response` -> 不要、一括処理時の識別からたどれるので
-
 
 
 ```
@@ -631,6 +550,26 @@ CREATE INDEX idx_refinements_post_id ON public.zstu_post_refinements (post_id);
 CREATE INDEX idx_refinements_status ON public.zstu_post_refinements (status);
 CREATE INDEX idx_refinements_user_id ON public.zstu_post_refinements (user_id);
 ```
+
+##### 3. 実装上のアドバイス：ステータス管理のコツ
+
+ご提示いただいたステータス遷移を、別テーブルで管理する際のイメージです。
+
+1. **一括実行（バッチ）**: `status` が `unprocessed` または `pending_requeue` のレコードを SELECT。
+2. **ロック**: 取得したレコードを即座に `processing` へ UPDATE（`disp=none` の場合）。
+3. **完了**: AIからの応答を `refined_content` に入れ、`status` を `refined` に更新。
+4. **ユーザー確認**: ユーザーが画面で「確定」を押したら `completed` または `completed_with_edit` へ。
+
+##### `disp` (検証モード) の扱い
+
+別テーブルにすることで、`disp` が `targets` や `results` のときは **「レコードを作成するが、`zstu_posts` 本体には何の影響も与えない」** という状態が作れるため、本番データへの悪影響を完全に遮断できます。
+
+---
+
+##### 4. ログレベル (`loglevel`) の落とし所
+
+`API_Logs` という別テーブルを想定されているようですが、**「成功した時の詳細ログ」は上記精査テーブルの `ai_request / ai_response` に入れ、「システムエラー（通信失敗など）」は `API_Logs` に入れる**という使い分けが、調査時にあちこちのテーブルを見なくて済むので楽ですよ。
+
 
 
 
@@ -700,7 +639,7 @@ CREATE INDEX idx_refinements_user_id ON public.zstu_post_refinements (user_id);
 
 ---
 
-### 週次評価結果を保存するテーブル（案）
+## 週次評価結果を保存するテーブル（案）
 
 AIが生成した評価は、後から振り返れるように専用のテーブル（例：`WeeklyEvaluations`）に保存することを推奨します。
 
@@ -718,175 +657,15 @@ AIが生成した評価は、後から振り返れるように専用のテーブ
 
 ---
 
-
-## 関連するテーブル
-### `zstu_tag_descriptions`
-
-- prompt作成時に、ローカルのTag情報として作成する。
-
-| カラム名 | 型 | 制約 | 説明 |
-| --- | --- | --- | --- |
-| `id` | UUID | PK | タグの一意識別子 |
-| `user_id` | UUID / Int | FK | どのユーザーのタグかを識別 |
-| `tag_name` | String(50) | Not Null | AIへの指示に使う短い識別子 (例: `zstv2`) |
-| `name` | String(100) | Not Null | 画面表示用の正式名称 (例: `zerosecthinkv2`) |
-| `aliases` | JSONB |  | 同義語リスト（重複回避用）(例：["パイソン", "Py", "python3"]) |
-| `description` | Text | - | タグの意味やAIへの補足説明  |
-| **`display_order`** | Int | Default: 0 | 画面上での表示順（昇順・降順でソート用） |
-| **`is_active`** | Boolean | Default: true | 有効/無効フラグ。削除せずに非表示にしたい場合に使用 |
-| **`is_send_ai`** | Boolean | Default: true | **AIへの送信対象にするか。** (※) |
-| **`created_at`** | Timestamp | Not Null | レコード作成日時 |
-| **`updated_at`** | Timestamp | Not Null | レコード更新日時 |
-
----
-
-#### 1. `is_active` (論理削除・有効化)
-
-* **必要性：** 非常に高いです。
-* **理由：** 過去のメモに関連付けられているタグを物理削除してしまうと、過去ログの整合性が崩れる可能性があります。「今は使わないけれどデータとして残しておきたい」場合に、`false` にすることで管理画面や選択肢から除外できます。
-
-#### 2. `is_send_ai` (AI送信フラグ) ※「is_sendai」の解釈
-
-* **必要性：** 高いです。
-* **理由：** おそらく `is_send_ai`（AIに送るかどうか）の意図かと推察します。タグが増えてくると、全てのタグをプロンプト（`{tags}`）に含めるとトークン数（コスト）を消費しすぎたり、AIが混乱したりします。「このタグはAIに文脈を理解させるために必須」というものにチェックを入れて制御できると便利です。
-
-#### 3. `display_order` (表示順)
-
-* **必要性：** 高いです。
-* **理由：** 作成順（`created_at`）だけでなく、よく使うタグを上に固定（ピン留め）したり、ユーザーが任意に並び替えたりできると、タグ管理画面の使い勝手が劇的に向上します。
-
-#### 4. `created_at` / `updated_at` (タイムスタンプ)
-
-* **必要性：** 必須レベルです。
-* **理由：** データのデバッグ時や、「最近作ったタグから表示する」といった並び替え、またAIの処理履歴との突合に必ず必要になります。
-
-
-### `ai_Batches`
-
-「1週間分のメモを修正する」という、ユーザーの1回の操作（リクエスト）を管理する親テーブルです。
-
-| カラム名 | 型 | 説明 |
-| --- | --- | --- |
-| `id` | Int | バッチ全体の一意識別子 |
-| `user_id` | UUID | 実行ユーザー |
-| `total_chunks` | Int | 全体の分割数（例：4チャンク） |
-| `completed_chunks` | Int | 完了した数（進捗管理用） |
-| `total_memos` | Int | 処理対象の総メモ件数（例：70件） |
-| `status` | String | `processing`, `completed`, `partial_success`, `failed` |
-| `created_at` | Timestamp | 開始日時 |
-
-SQLiteを想定なので、UUID、JSONB -> TEXT型、Boolean -> Integer(0,1)
-
-### `ai_Execution_Logs`
-
-- バッチが対象数多いときに分割した履歴を登録する
-- 70件だと1(1-20),2(21-40),3(41-60),4(61-70)と４回に分けて登録するので４行になる。
-
-
-| カラム名 | 型 | 説明 |
-| --- | --- | --- |
-| `id` | Int | ログの一意識別子 |
-| `user_id` | UUID | 実行したユーザー |
-|`batch_id` |int|`ai_Batches` へのリレーション|
-|`chunk_index` |int|「4チャンク中、何番目のリクエストか」を記録します。|
-| `prompt_template` | Text | 使用した `typo_content` のスナップショット |
-| `raw_input_json` | JSONB | AIに送った実際のJSONデータ |
-| `raw_output_text` | Text | AIから返ってきた生のレスポンス |
-| `model_info` | String | 使用モデル (Gemini 1.5 Flash等) |
-| **`api_version`** | String | `v1` や `v1beta` など。API側の仕様変更の追跡用 |
-| **`duration_ms`** | Int | 実行にかかった時間（ミリ秒）。パフォーマンス監視用 |
-| `status` | String | `success`, `failed`, `retry` など |
-| `used_tags_snapshot` | JSONB | 当時送ったタグ定義（名前・説明）の記録 |
-| `error_payload` | JSONB |  APIがエラーを返した際、その詳細をそのまま保存します |
-| `token_usage` | JSONB | Geminiから返ってくる `prompt_token_count` と `candidates_token_count` を保存。 |
-| `created_at` | Timestamp | 実行日時 |
-
-
----
-
-#### 1. `api_version` の重要性
-
-Google AI Studio (Gemini API) は、`v1beta` でのみ先行実装される機能（構造化出力の厳密な定義など）が多いです。
-「以前は動いていたのに急にJSONパースに失敗するようになった」という時、**「APIのバージョンが原因か、モデルの更新が原因か」**を切り分ける重要な手がかりになります。
-
-#### 2. `duration_ms` (実行時間) の重要性
-
-提示いただいたコードでは `CHUNK_SIZE` ごとに分割送信し、さらに `WAIT_TIME_MS` (10秒) の待機を入れています。
-* ログを見ることで「実際にAIの推論に何秒かかったのか」と「待機時間を含めた全体のUXとしてどうなのか」を数値化できます。
-* あまりに時間がかかるチャンクがある場合、プロンプトが長すぎる、あるいはタグの `description` が多すぎるといったボトルネックを発見できます。
-
-
-
-### `zstu_post_refinements` 
-
-1つの投稿に対するAIの整形・精査結果を管理します。
-
-| カラム名 | 型 | 説明 |
-| --- | --- | --- |
-| `id` |Integer | プライマリキーメール用のトークンは別に管理します |
-| `post_id` | Integer | `zstu_posts.id` (FK) |
-| `user_id` | UUID | ユーザーID |
-| `status` | String | ご提示の `unprocessed` 〜 `completed` |
-| `request_title` | Text | 要求時のコンテンツ |
-| `request_content` | Text | 要求時のコンテンツ |
-| `request_tags` | jsonb | 要求時のコンテンツ |
-| `ai_refined_title` | Text | AIからの返答内容 |
-| `ai_refined_content` | Text | AIからの返答内容 |
-| `ai_refined_tags` | jsonb | AIからの返答内容 |
-| `ai_changes` | jsonb | AIからの変更点の指摘 |
-| `is_fixed` | boolean | AIからの返答から調整して、登録したかどうか |
-| `fixed_title` | Text | 最終的に登録された内容 |
-| `fixed_content` | Text | 最終的に登録された内容 |
-| `fixed_tags` | jsonb | 最終的に登録された内容 |
-| `trace_id` | UUID | 一括処理時のバッチ識別子 |
-| `created_at` | Timestamp | 実行日時 |
-| `updated_at` | Timestamp | 更新日時 |
-
-
----
-
-is_edited,applied,状態の意味
-false,true,AIの提案をそのまま採用した。
-true,true,AIの提案を人間が手直しして採用した。
-false,false,AIが提案したが、採用を見送った（破棄）。
-true,false,（レアケース）手直しはしたが、結局採用しなかった。
-
-
-### `prompt_templates` 
-
-- 複数のシステムから利用される情報（VercelNextJSやFastAPI）なので、テーブルに情報として持つ
-
-
-プロンプトの「枠組み（名前や用途）」を定義します。
-
-| カラム名 | 型 | 説明 |
-| --- | --- | --- |
-| `id` | `integer` | 主キー (PK) |
-| `slug` | `text` | プロンプト識別子（例: `typo_propmt`）※一意制約 |
-| `name` | `text` | 管理用の表示名（例: カスタマーサポート返信） |
-| `description` | `text` | このプロンプトの用途説明 |
-| `created_at` | `timestamptz` | 作成日時 |
-
-
-### `prompt_versions`
-
-
-プロンプトの「中身（バージョン）」を保持します。
-
-| カラム名 | 型 | 説明 |
-| --- | --- | --- |
-| `id` | `integer` | 主キー (PK) |
-| `template_id` | `integer` | `prompt_templates.id` への外部キー |
-| `version` | `integer` | バージョン番号 (1, 2, 3...) |
-| `content` | `text` | **プロンプト本文**（変数は `{{memo}}` `{{tags}}` 等で保持） |
-| `comment` | `text` | コメント |
-| `model_config` | `jsonb` | モデル設定（`model: "gpt-4o"`, `temperature: 0.7` など） |
-| `is_active` | `boolean` | **現在使用中のバージョンか**（Trueは1つのみ） |
-| `created_by` | `uuid` | 作成者のユーザーID（Supabase Authと連携） |
-| `created_at` | `timestamptz` | 作成日時 |
-
----
-API_Logs（共通アクセスログ）Task_Progress_Logs（目的別・処理進捗ログ）への登録は別途検討
+## サマリをAIに問い合わせる動き
+Step1 トリガーでプッシュ
+STep2 年ｘｘ週ごとのデータみて、状況確認
+Step3 未処理なら、処理対象
+Step4 処理中ならパス
+Step5 処理開始
+Step6 Post入手(公開分のみ)
+Step7 ＡＩ問い合わせ
+Step8 結果登録
 
 ## todo 
 - [ ] Api経由での呼び出しのテスト

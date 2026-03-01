@@ -1,0 +1,41 @@
+{% extends "base.html" %} {% block title %}Dashboard - API Test{% endblock %} {%
+block content %}
+<link rel="stylesheet" href="{{ url_for('static', path='/css/site.css') }}" />
+<h1>ai/ai_typo_list</h1>
+
+<h2>AIログ投稿</h2>
+{% if ai_loghd_list %}
+<table class="table table-hover align-middle">
+  <thead class="table-light">
+    <tr>
+      <th>created_at</th>
+      <th>total_chunks</th>
+      <th>completed_chunks</th>
+      <th>total_memos</th>
+      <th>status</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for post in ai_loghd_list %}
+    <tr>
+      <td>{{ post.created_at_jst }}</td>
+      <td>{{ post.total_chunks }}</td>
+      <td>{{ post.completed_chunks }}</td>
+      <td>{{ post.total_memos }}</td>
+      <td>{{ post.status }}</td>
+      <td>
+        <a
+          href="/ai/typo_detail/{{ post.id }}"
+          class="btn btn-sm btn-outline-primary"
+        >
+          詳細
+        </a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>AIログ投稿はありません。</p>
+{% endif %} {% endblock %}

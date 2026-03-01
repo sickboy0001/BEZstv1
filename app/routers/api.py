@@ -1,6 +1,7 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+
 from pydantic import BaseModel
 import logging
 from sqlalchemy.orm import Session
@@ -10,8 +11,10 @@ from app.services.cleaning_post_service import (
 from app.database import get_db
 from datetime import date
 from app.services.db_service import get_datefromto_posts, get_postids_posts
+from app.services.mailsend import mailsend_typo
 from app.services.prompt_tamplate_service import get_prompt_template_from_db
 from app.services.tags_service import get_formatted_tags_json
+from app.services.user_service import get_user_mail
 
 
 router = APIRouter(
@@ -27,13 +30,14 @@ class CleaningRequest(BaseModel):
     is_force_reprocess: bool = False
     is_dry_run_only: bool = False
     log_level_type: str = "normal"
-    is_enable_batch_log: bool = True
-    is_enable_post_refinement: bool = True
+    # is_enable_batch_log: bool = True # 未使用？
+    # is_enable_post_refinement: bool = True  # 未使用？
     action_mode: str = "mode_ai" # "mode_ai", "mode_script", "mode_result" などの値を想定
-
+    is_enable_post_status_update: bool = True # 追加: ポストのステータス更新を行うかどうかのフラグ
 
 @router.post("/cleaning-post")
-async def cleaning_post_api(req: CleaningRequest, db: Session = Depends(get_db)):
+async def cleaning_post_api(req: CleaningRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+
     # 手順書の定義に基づく内部フラグの確定
     # C: スクリプト作成のみ
     # is_make_script_only = (req.disp == "targets")
@@ -41,12 +45,12 @@ async def cleaning_post_api(req: CleaningRequest, db: Session = Depends(get_db))
     # CがONなら D, E, F は強制OFF
     if req.action_mode == "mode_script" or req.action_mode == "mode_ai":
         log_level = "none"
-        is_enable_batch_log = False
-        is_enable_post_refinement = False
+        # is_enable_batch_log = False
+        # is_enable_post_refinement = False
     else:
-        log_level = req.log_level_type
-        is_enable_batch_log = (log_level != "none")
-        is_enable_post_refinement = is_enable_batch_log # EがOFFならFもOFF
+        req.log_level_type
+        # is_enable_batch_log = (log_level != "none")
+        # is_enable_post_refinement = is_enable_batch_log # EがOFFならFもOFF
 
     process_log = []
 
@@ -64,11 +68,12 @@ async def cleaning_post_api(req: CleaningRequest, db: Session = Depends(get_db))
     final_prompt = build_prompt_text(db, filtered_posts, req.user_id, prompt_template,tags_json)
     process_log.append("Step 4: プロンプトを作成しました。")
 
-
-    # --- Step 5 & 6: AI問い合わせ & ログ登録 ---
-    if is_enable_batch_log:
-        # insert: ai_Batches, ai_Execution_Logs (開始)
-        process_log.append("Step 5: バッチ処理ログを登録しました。")
+    if req.is_enable_post_status_update:    
+        # todo ポストのステータスを「処理中」に更新するロジックをここに追加 
+        # ポストのステータスを「処理中」に更新するロジックをここに追加
+        # 例: update_post_status_to_processing(db, filtered_posts)
+        process_log.append("Step 4.1: ポストのステータスを「処理中」に更新しました。未実装")
+        
 
     if req.action_mode == "mode_script":
         return {
@@ -78,43 +83,45 @@ async def cleaning_post_api(req: CleaningRequest, db: Session = Depends(get_db))
             "log": process_log
         }
 
-    # AIリクエスト実行
-    ai_raw_result = call_gemini_api(db, filtered_posts, req.user_id, prompt_template,tags_json)
-    print("ai_raw_result:", ai_raw_result)
-    # ai_raw_result=""
-    if is_enable_post_refinement:
-        # update: zstu_posts.ai_refinement
-        # insert: zstu_post_refinements
-        process_log.append("Step 6: ポストごとのAI結果をDBに登録しました。")
 
-    # --- Step 7: 結果の送信 ---
-    if is_enable_post_refinement:
-        # insert: api_logs (メール送信の代わりのログ)
-        process_log.append("Step 7: 処理結果をログに送信しました。")
+    process_log.append("Step 5 : AI問い合わせ (Execution & Logging)")
+    ai_raw_result = call_gemini_api(db, filtered_posts, req.user_id, prompt_template,tags_json)
+    process_log.append("Step 6: AI結果受領 (Execution & Logging)")
+
+    if req.is_enable_post_status_update:    
+        # todo ポストのステータスを「処理中」に更新するロジックをここに追加 
+        # ポストのステータスを「処理中」に更新するロジックをここに追加
+        # 例: update_post_status_to_processing(db, filtered_posts)
+        process_log.append("Step 6.1: ポストのステータスを「処理済み」に更新しました。未実装")
+        process_log.append("is_enable_post_status_update=trueのため")
+
+    # print("ai called after this actionmode ",req.action_mode)
+    batch_id_for_log = ai_raw_result.get("batch_id") if ai_raw_result else None    
+    # batch_id_for_log = ai_raw_result.batch_id if ai_raw_result else None
+    print("batch_id_for_log: ", batch_id_for_log)
+    if req.action_mode == "mode_ai":
+        return {
+            "status": "AI_MODE_COMPLETED",
+            "result": "AI processing completed",
+            "batch_id": batch_id_for_log, # AI処理の結果からbatch_idを取得して返す
+            "ai_raw_result": ai_raw_result,
+            "log": process_log
+        }
+    
+    # if req.action_mode == "mode_result":
+    user_mail = await get_user_mail(db, req.user_id) if req.user_id else "unknown"
+    if(user_mail):
+        # 結果の送信 (メール送信などの処理をここに実装)
+        # 例: send_result_email(user_mail, ai_raw_result)
+        # mailsend_typo(db,req.user_id , user_mail,batch_id_for_log)
+        await mailsend_typo(db, req.user_id, user_mail, batch_id_for_log, background_tasks)
+        process_log.append(f"Step 7: 結果をユーザー({user_mail})に送信しました。")
+    
+
 
     return {
-        "status": "COMPLETED",
+        "status": "SUCCESS",
         "CleaningRequest": req,
         "log": process_log,
-        "batch_id": 12345 if is_enable_batch_log else None
+        "batch_id": batch_id_for_log 
     }
-
-# @router.post("/cleaning-post")
-# async def cleaning_post_api(
-#     payload: CleaningPostRequest,
-#     db: Session = Depends(get_db)
-# ):
-#     # print(f"cleaning_post_api payload: {payload}")
-#     try:
-#         result = await cleaning_post(db,payload )
-#         # TODO: ここに実際のクリーニング処理を実装
-#         # 現在はリクエスト内容をそのまま返却
-#         return {
-#             "status": "success",
-#             "message": "cleaning_post_api accepted",
-#             "data": payload,
-#             "result": result
-#         }
-#     except Exception as e:
-#         logging.error(f"cleaning_post_api error: {e}")
-#         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")

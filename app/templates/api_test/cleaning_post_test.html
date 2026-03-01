@@ -133,7 +133,7 @@ block content %}
                       onchange="handleDryRunMode(this.value)"
                     />
                     <label class="form-check-label" for="mode_result"
-                      >結果登録</label
+                      >結果登録　結果通知（メール）</label
                     >
                   </div>
                   <div class="form-check">
@@ -170,6 +170,22 @@ block content %}
                 >
                 <div class="card bg-light-subtle border-0">
                   <div class="card-body py-2 d-flex align-items-center gap-3">
+                    <div class="form-check form-switch mb-0">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        id="is_enable_post_status_update"
+                        checked
+                        onchange="syncPostStatusUpdateFlag()"
+                      />
+                      <label
+                        class="form-check-label small"
+                        for="is_enable_post_status_update"
+                        >G: ポストのステータス更新するかどうか
+                        (is_enable_post_status_update)</label
+                      >
+                    </div>
+
                     <div class="form-check form-switch mb-0">
                       <input
                         class="form-check-input"
@@ -383,6 +399,9 @@ block content %}
       action_mode: document.querySelector(
         'input[name="is_dry_run_only"]:checked',
       ).value,
+      is_enable_post_status_update: document.getElementById(
+        "is_enable_post_status_update",
+      ).checked,
     };
 
     try {

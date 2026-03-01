@@ -1,0 +1,149 @@
+{% extends "base.html" %} {% block title %}Dashboard - API Test{% endblock %} {%
+block content %}
+<link rel="stylesheet" href="{{ url_for('static', path='/css/site.css') }}" />
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1>ai/ai_typo/detail</h1>
+  <a href="/ai/typo/list" class="btn btn-outline-primary"
+    ><i class="bi bi-list-ul me-2"></i>実行記録一覧</a
+  >
+</div>
+
+<ul class="nav nav-tabs mb-3" id="detailTab" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button
+      class="nav-link active"
+      id="post-tab"
+      data-bs-toggle="tab"
+      data-bs-target="#post-tab-pane"
+      type="button"
+      role="tab"
+      aria-controls="post-tab-pane"
+      aria-selected="true"
+    >
+      タイポポスト
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button
+      class="nav-link"
+      id="log-tab"
+      data-bs-toggle="tab"
+      data-bs-target="#log-tab-pane"
+      type="button"
+      role="tab"
+      aria-controls="log-tab-pane"
+      aria-selected="false"
+    >
+      AIログ
+    </button>
+  </li>
+</ul>
+
+<div class="tab-content" id="detailTabContent">
+  <div
+    class="tab-pane fade show active"
+    id="post-tab-pane"
+    role="tabpanel"
+    aria-labelledby="post-tab"
+    tabindex="0"
+  >
+    {% if ai_log_posts %}
+    <table style="border-collapse: collapse; width: 100%">
+      <thead style="background-color: #f2f2f2">
+        <tr>
+          <th>ID</th>
+          <th>Post ID</th>
+          <th>Batch ID</th>
+          <th>Order Index</th>
+          <th>Before</th>
+          <th>After</th>
+          <th>Changes Summary</th>
+          <th>Fixed</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for post in ai_log_posts %}
+        <tr class="align-top">
+          <td>{{ post.id }}</td>
+          <td>{{ post.post_id }}</td>
+          <td>{{ post.batch_id }}</td>
+          <td>{{ post.order_index }}</td>
+          <td>
+            <p class="fw-bold">{{ post.before_title }}</p>
+            <p>{{ post.before_text }}</p>
+            <p class="text-secondary small">{{ post.before_tags }}</p>
+          </td>
+          <td>
+            <p class="fw-bold">{{ post.after_title }}</p>
+            <p>{{ post.after_text }}</p>
+            <p class="text-secondary small">{{ post.after_tags }}</p>
+          </td>
+          <td style="font-size: small">{{ post.changes_summary }}</td>
+          <td>
+            <p class="fw-bold">{{ post.fixed_title }}</p>
+            <p>{{ post.fixed_text }}</p>
+            <p class="text-secondary small">{{ post.fixed_tags }}</p>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p>AIログ投稿はありません。</p>
+    {% endif %}
+  </div>
+
+  <div
+    class="tab-pane fade"
+    id="log-tab-pane"
+    role="tabpanel"
+    aria-labelledby="log-tab"
+    tabindex="0"
+  >
+    {% if ai_log_executions %}
+    <table class="table table-bordered table-striped">
+      <thead class="table-light">
+        <tr>
+          <th>ID</th>
+          <th>Batch ID</th>
+          <th>Created At</th>
+          <th>Chunk Index</th>
+          <th>Model Info</th>
+          <th>API Version</th>
+          <th>Duration (ms)</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for exec in ai_log_executions %}
+        <tr>
+          <td>
+            <a
+              href="#"
+              hx-get="/ai/execution_detail/{{ exec.id }}"
+              hx-target="#execution-detail"
+            >
+              {{ exec.id }}
+            </a>
+          </td>
+          <td>{{ exec.batch_id }}</td>
+          <td>{{ exec.created_at }}</td>
+          <td>{{ exec.chunk_index }}</td>
+          <td>{{ exec.model_info }}</td>
+          <td>{{ exec.api_version }}</td>
+          <td>{{ exec.duration_ms }}</td>
+          <td>{{ exec.status }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div id="execution-detail" class="mt-3"></div>
+    {% else %}
+    <p>AI実行ログはありません。</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %} {% block scripts %}
+<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+{% endblock %}

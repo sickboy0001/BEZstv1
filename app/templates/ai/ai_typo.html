@@ -1,0 +1,71 @@
+{% extends "base.html" %} {% block title %}Dashboard - API Test{% endblock %} {%
+block content %}
+<link rel="stylesheet" href="{{ url_for('static', path='/css/site.css') }}" />
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1>ai/ai_typo</h1>
+  <a href="/ai/typo/list" class="btn btn-outline-primary"
+    ><i class="bi bi-list-ul me-2"></i>実行記録一覧</a
+  >
+</div>
+
+<h3>✅ 登録完了</h3>
+<p>データが正常に登録されました。</p>
+<ul>
+  <li><strong>system_name:</strong> {{ system_name }}</li>
+  <li><strong>user_id:</strong> {{ user_id }}</li>
+  <li><strong>parameters:</strong> {{ parameters }}</li>
+  <li><strong>recovered_system_name:</strong> {{ recovered_system_name }}</li>
+  <li><strong>recovered_user_id:</strong> {{ recovered_user_id }}</li>
+  <li><strong>recovered_batch_id:</strong> {{ recovered_batch_id }}</li>
+  <li>
+    <strong>created_at_jst:</strong>
+    <span>{{ created_at_jst }}</span>
+  </li>
+</ul>
+
+<h2>AIログ投稿</h2>
+{% if ai_log_posts %}
+<table style="border-collapse: collapse; width: 100%">
+  <thead style="background-color: #f2f2f2">
+    <tr>
+      <th>ID</th>
+      <th>Post ID</th>
+      <th>Batch ID</th>
+      <th>Order Index</th>
+      <th>Before</th>
+      <th>After</th>
+      <th>Changes Summary</th>
+      <th>Fixed</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for post in ai_log_posts %}
+    <tr class="align-top">
+      <td>{{ post.id }}</td>
+      <td>{{ post.post_id }}</td>
+      <td>{{ post.batch_id }}</td>
+      <td>{{ post.order_index }}</td>
+      <td>
+        <p class="fw-bold">{{ post.before_title }}</p>
+        <p>{{ post.before_text }}</p>
+        <p class="text-secondary small">{{ post.before_tags }}</p>
+      </td>
+      <td>
+        <p class="fw-bold">{{ post.after_title }}</p>
+        <p>{{ post.after_text }}</p>
+        <p class="text-secondary small">{{ post.after_tags }}</p>
+      </td>
+      <td style="font-size: small">{{ post.changes_summary }}</td>
+      <td>
+        <p class="fw-bold">{{ post.fixed_title }}</p>
+        <p>{{ post.fixed_text }}</p>
+        <p class="text-secondary small">{{ post.fixed_tags }}</p>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>AIログ投稿はありません。</p>
+{% endif %} {% endblock %}

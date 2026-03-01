@@ -219,6 +219,8 @@ def filter_posts_with_state_detail(posts, is_force_reprocess):
 
     # state_detailが特定の値、または存在しない/NULLの場合に対象とする
     allowed_states = ["initial", "processed"]  # 例: これらの状態の投稿も処理対象にする
+    # todo readme state_detailの値の定義と意味を明確にすること。例えば、"initial"は未処理、"processed"は一度処理済みだが再処理可能、"skipped"は処理対象外など。 
+
     filtered = [
         post for post in posts if not post.get("state_detail") or post.get("state_detail") in allowed_states
     ]

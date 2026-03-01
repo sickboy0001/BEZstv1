@@ -5,14 +5,15 @@ import os
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.lib.URLGenerator import URLGenerator, UUIDMapping, generate_short_id
-from app.lib.UUIDGenerator import UUIDGenerator
+from app.lib.URLGenerator import UUIDMapping
 from ..dependencies import templates, get_current_user
 import uuid
 
 router = APIRouter()
 
 
+from app.services.url_service import register_short_url
+from app.lib.UUIDGenerator import UUIDGenerator
 
 @router.get("/test", response_class=HTMLResponse)
 async def test_form(request: Request):
@@ -27,27 +28,13 @@ async def test_submit(
         batch_id: int = Form(...),
         db: Session = Depends(get_db)
     ):
-        # UUID生成
-        secret_key = os.environ.get("FERNET_KEY")
-        uuid_generator = UUIDGenerator(secret_key)
-        user_id = str(uuid.uuid4())  # Generate a new UUID for each submission
-        identifier_uuid = uuid_generator.generate_uuid(system_name, user_id, str(batch_id))
+        # ユーザーIDを新規生成 (元のロジックを踏襲)
+        # ※フォームから受け取ったuser_idを使いたい場合は、この行を削除してください
+        generated_user_id = str(uuid.uuid4())
 
-        # 短いIDの生成
-        short_id = generate_short_id(identifier_uuid)
+        # サービス層のメソッドを呼び出して登録処理を実行
+        short_id, redirect_url = register_short_url(db, system_name, generated_user_id, batch_id)
 
-        # parametersとしてbatch_idを格納
-        parameters = {"batch_id": batch_id}
-
-        # データベースに保存
-        db_uuid_mapping = UUIDMapping(short_id=short_id, uuid=identifier_uuid, system_name=system_name, user_id=user_id, parameters=parameters)
-        db.add(db_uuid_mapping)
-        db.commit()
-        db.refresh(db_uuid_mapping)
-
-        # リダイレクトURLの生成
-        url_generator = URLGenerator()
-        redirect_url = url_generator.generate_url("app", short_id)
         print (f"Generated short_id: {short_id}, redirect_url: {redirect_url}")
 
         # テンプレートに渡すデータ

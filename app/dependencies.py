@@ -28,7 +28,7 @@ def jst_filter(value):
 
     # 2. 日本時間を計算 (UTCから9時間加算)
     jst_time = value + timedelta(hours=9)
-    return jst_time.strftime('%Y/%m/%d %H:%M')
+    return jst_time.strftime('%Y/%m/%d %H:%M:%S')
 
 # 3. Jinja2のエコシステムに "jst" という名前で登録
 templates.env.filters["jst"] = jst_filter

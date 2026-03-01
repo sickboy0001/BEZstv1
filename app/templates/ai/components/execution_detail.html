@@ -1,0 +1,73 @@
+<div class="card border-info">
+  <div class="card-header bg-info text-white">
+    詳細情報 (ID: {{ execution_detail.id }})
+  </div>
+  <div class="card-body">
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <ul class="list-unstyled">
+          <li>
+            <strong>Created At:</strong> {{ execution_detail.created_at }}
+          </li>
+          <li><strong>Status:</strong> {{ execution_detail.status }}</li>
+          <li>
+            <strong>Duration:</strong> {{ execution_detail.duration_ms }} ms
+          </li>
+        </ul>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-unstyled">
+          <li><strong>Model:</strong> {{ execution_detail.model_info }}</li>
+          <li>
+            <strong>API Version:</strong> {{ execution_detail.api_version }}
+          </li>
+          <li>
+            <strong>Token Usage:</strong> {{ execution_detail.token_usage }}
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label class="fw-bold">Raw Input JSON</label>
+      <pre
+        class="bg-light p-2 border rounded"
+        style="max-height: 200px; overflow-y: auto; font-size: 0.85rem"
+      >
+{{ execution_detail.raw_input_json }}</pre
+      >
+    </div>
+
+    <div class="mb-3">
+      <label class="fw-bold">Raw Output Text</label>
+      <pre
+        class="bg-light p-2 border rounded"
+        style="max-height: 200px; overflow-y: auto; font-size: 0.85rem"
+      >
+{{ execution_detail.raw_output_text }}</pre
+      >
+    </div>
+
+    {% if execution_detail.error_payload %}
+    <div class="mb-3">
+      <label class="fw-bold text-danger">Error Payload</label>
+      <pre
+        class="bg-danger-subtle p-2 border rounded text-danger"
+        style="font-size: 0.85rem"
+      >
+{{ execution_detail.error_payload }}</pre
+      >
+    </div>
+    {% endif %} {% if execution_detail.used_tags_snapshot %}
+    <div class="mb-3">
+      <label class="fw-bold">Used Tags Snapshot</label>
+      <pre
+        class="bg-light p-2 border rounded"
+        style="max-height: 150px; overflow-y: auto; font-size: 0.85rem"
+      >
+{{ execution_detail.used_tags_snapshot }}</pre
+      >
+    </div>
+    {% endif %}
+  </div>
+</div>
