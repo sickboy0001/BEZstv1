@@ -172,7 +172,7 @@ async def get_execution_detail(request: Request, execution_id: int,
 
     
     print(f"ai_type: execution_id: {execution_id}")
-    execution_detail = get_ailogexecution_detail_id_from_db(turso_db, id=execution_id, limit=1)[0]
+    execution_detail = get_ailogexecution_detail_id_from_db(turso_db, id=execution_id)[0]
     print(f"ai_type: execution_detail: {execution_detail}")
     # テンプレートに情報を渡して表示
     return templates.TemplateResponse("ai/components/execution_detail.html", {
