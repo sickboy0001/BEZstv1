@@ -550,37 +550,6 @@ UIから渡される、またはAPI引数として定義する変数名です。
 「要求中」「受領済み」「 登録済み（更新あり）」「登録済み」の物は、一度AIに問い合わせ済なので、対象外とする。
 
 
-```sql
--- 生成AIへのリクエスト対象を抽出する
-SELECT * FROM zstu_posts
-WHERE delete_flg = false
-  AND json_extract(state_detail, '$.ai_request.status') IN ('unprocessed', 'pending_requeue');
-
--- 処理中への変更
-UPDATE zstu_posts
-SET state_detail = json_set(
-    state_detail, 
-    '$.ai_request.status', 'processing',
-    '$.ai_request.updated_at', datetime('now')
-)
-WHERE id = ? 
-  AND json_extract(state_detail, '$.ai_request.status') IN ('unprocessed', 'pending_requeue');
-
--- AIリクエスト開始時の更新（「要求中」へ）
-UPDATE zstu_posts 
-SET state_detail = json_set(
-    state_detail, 
-    '$.ai_request.status', 'processing',
-    '$.ai_request.updated_at', datetaime('now')
-)
-WHERE id = ?;
-
--- AIからの回答受領時（「受領済み」へ）
-UPDATE zstu_posts 
-SET state_detail = json_set(state_detail, '$.status', 'refined')
-WHERE id = ?;
-
-```
 
 
 
@@ -602,27 +571,13 @@ WHERE id = ?;
 
 | 項目名 | 型 | 説明 |
 | --- | --- | --- |
-| **`status`** | `string` | **AI連携の現在のステータス。** <br>
+| **`status`** | `string` | **AI連携の現在のステータス。** <br>`unprocessed` (未), `processing` (処理中), `pending_requeue` (再要求), `refined` (受領済), `completed` (完了) のいずれか。 |
+| **`updated_at`** | `string` | **ステータスまたは内容の最終更新日時。** <br>ISO8601形式（`2026-02-26T14:00:00Z`）。 |
+| **`is_edited`** | `boolean` | **ユーザーによる編集の有無。** <br>AIが生成した `refined_content` に対して、ユーザーが一度でも手動で修正を加えた場合に `true` に設定。 |
+| **`is_fixed`** | `boolean` | **確定フラグ。** <br>ユーザーが内容を確認し、「これでOK」として保存・確定させた場合に `true`。これが `true` の間は、バッチ処理の対象から除外される。 |
+| **`last_refinement_id`** | `number` | **AIリクエストの履歴ID。** <br>どのバージョンのAIモデルやプロンプトで生成されたかを追跡するための識別子。 |
+| **`last_error`** | `string` | **エラーログ。** <br>直近のリクエストで失敗した場合のエラー内容を保持。成功時は `null`。 |
 
-<br>`unprocessed` (未), `processing` (処理中), `pending_requeue` (再要求), `refined` (受領済), `completed` (完了) のいずれか。 |
-| **`updated_at`** | `string` | **ステータスまたは内容の最終更新日時。** <br>
-
-<br>ISO8601形式（`2026-02-26T14:00:00Z`）。 |
-| **`is_edited`** | `boolean` | **ユーザーによる編集の有無。** <br>
-
-<br>AIが生成した `refined_content` に対して、ユーザーが一度でも手動で修正を加えた場合に `true` に設定。 |
-| **`is_fixed`** | `boolean` | **確定フラグ。** <br>
-
-<br>ユーザーが内容を確認し、「これでOK」として保存・確定させた場合に `true`。これが `true` の間は、バッチ処理の対象から除外される。 |
-| **`last_refinement_id`** | `number` | **AIリクエストの履歴ID。** <br>
-
-<br>どのバージョンのAIモデルやプロンプトで生成されたかを追跡するための識別子。 |
-| **`last_error`** | `string` | **エラーログ。** <br>
-
-<br>直近のリクエストで失敗した場合のエラー内容を保持。成功時は `null`。 |
-| **`refined_content`** | `string` | **AIが生成した回答本文。** <br>
-
-<br>マークダウン形式などのテキストデータ。ユーザーが編集する際の「元ネタ」として保持。 |
 
 ---
 

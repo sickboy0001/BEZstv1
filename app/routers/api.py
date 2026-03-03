@@ -10,7 +10,7 @@ from app.services.cleaning_post_service import (
 )
 from app.database import get_db
 from datetime import date
-from app.services.db_service import get_datefromto_posts, get_postids_posts
+from app.services.db_service import get_datefromto_posts, get_postids_posts, update_posts_state_detail_processing, update_posts_state_detail_refined
 from app.services.mailsend import mailsend_typo
 from app.services.prompt_tamplate_service import get_prompt_template_from_db
 from app.services.tags_service import get_formatted_tags_json
@@ -28,11 +28,10 @@ class CleaningRequest(BaseModel):
     date_end: date
     target_post_ids: List[int] = []
     is_force_reprocess: bool = False
-    is_dry_run_only: bool = False
     log_level_type: str = "normal"
     # is_enable_batch_log: bool = True # 未使用？
     # is_enable_post_refinement: bool = True  # 未使用？
-    action_mode: str = "mode_ai" # "mode_ai", "mode_script", "mode_result" などの値を想定
+    action_mode: str = "mode_result" # "mode_ai", "mode_script", "mode_result" などの値を想定
     is_enable_post_status_update: bool = True # 追加: ポストのステータス更新を行うかどうかのフラグ
 
 @router.post("/cleaning-post")
@@ -56,12 +55,24 @@ async def cleaning_post_api(req: CleaningRequest, background_tasks: BackgroundTa
 
     # --- Step 3 & 4: 抽出とプロンプト作成 ---
     # (ここは共通処理)
-    target_posts = fetch_posts_from_db(db, req.user_id,req.date_start,req.date_end,req.target_post_ids) # 既存の取得処理
+    target_posts = fetch_posts_from_db(
+        db, req.user_id,req.date_start,req.date_end,req.target_post_ids
+        ) # 既存の取得処理
     # print("target_posts:", target_posts)
-    filtered_posts = filter_posts_with_state_detail(target_posts,req.is_force_reprocess) # state_detailでの絞り込み
+    filtered_posts = filter_posts_with_state_detail(
+        target_posts,req.is_force_reprocess
+        ) # state_detailでの絞り込み
     # print("filtered_posts:", filtered_posts)
-    
-    slug = "typo_prompt" ## todo
+    # filtered_postsがない時には処理の終了
+    if not filtered_posts:
+        print("No posts to process after filtering with state_detail.",
+            req.date_start, req.date_end, req.target_post_ids)
+        return {
+            "status": "NO_TARGET_POSTS",
+            "result": "処理対象の投稿がありませんでした。",
+            "log": process_log
+        }
+    slug = "typo_prompt" 
     tags_json = get_formatted_tags_json(db, req.user_id) if req.user_id else ""
     prompt_template = get_prompt_template_from_db(db,slug)
 
@@ -69,9 +80,8 @@ async def cleaning_post_api(req: CleaningRequest, background_tasks: BackgroundTa
     process_log.append("Step 4: プロンプトを作成しました。")
 
     if req.is_enable_post_status_update:    
-        # todo ポストのステータスを「処理中」に更新するロジックをここに追加 
-        # ポストのステータスを「処理中」に更新するロジックをここに追加
-        # 例: update_post_status_to_processing(db, filtered_posts)
+        # ポストのステータスを「処理中」に更新するロジック 
+        update_posts_state_detail_processing(db,filtered_posts)
         process_log.append("Step 4.1: ポストのステータスを「処理中」に更新しました。未実装")
         
 
@@ -89,9 +99,8 @@ async def cleaning_post_api(req: CleaningRequest, background_tasks: BackgroundTa
     process_log.append("Step 6: AI結果受領 (Execution & Logging)")
 
     if req.is_enable_post_status_update:    
-        # todo ポストのステータスを「処理中」に更新するロジックをここに追加 
-        # ポストのステータスを「処理中」に更新するロジックをここに追加
-        # 例: update_post_status_to_processing(db, filtered_posts)
+        # ポストのステータスを「処理済み」に更新するロジック 
+        update_posts_state_detail_refined(db, filtered_posts)
         process_log.append("Step 6.1: ポストのステータスを「処理済み」に更新しました。未実装")
         process_log.append("is_enable_post_status_update=trueのため")
 

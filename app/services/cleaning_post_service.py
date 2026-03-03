@@ -212,19 +212,21 @@ def build_prompt_text(db: Session, posts, user_id: str = None, prompt_template=N
     return prompt
 
 def filter_posts_with_state_detail(posts, is_force_reprocess):
-    # print("is_force_reprocess:", is_force_reprocess)
     if is_force_reprocess:
         return posts
-    # print("posts before filtering:", posts)
 
-    # state_detailが特定の値、または存在しない/NULLの場合に対象とする
-    allowed_states = ["initial", "processed"]  # 例: これらの状態の投稿も処理対象にする
-    # todo readme state_detailの値の定義と意味を明確にすること。例えば、"initial"は未処理、"processed"は一度処理済みだが再処理可能、"skipped"は処理対象外など。 
+    filtered_posts = []
+    for post in posts:
+        state_detail = post.get("state_detail") or {}
+        ai_request = state_detail.get("ai_request") or {}
+        # status がない場合は 'unprocessed' として扱う
+        status = ai_request.get("status", "unprocessed")
 
-    filtered = [
-        post for post in posts if not post.get("state_detail") or post.get("state_detail") in allowed_states
-    ]
-    return filtered
+        if status in ["unprocessed", "pending_requeue"]:
+            filtered_posts.append(post)
+            
+    return filtered_posts
+
 
 class CleaningPostRequest(BaseModel):
     user_id: str
