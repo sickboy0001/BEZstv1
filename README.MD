@@ -31,7 +31,10 @@
   - [🔄 状態遷移の確定](#-状態遷移の確定)
   - [関連するテーブル `zstu_posts`](#関連するテーブル-zstu_posts)
     - [B.`zstu_posts`](#bzstu_posts)
-    - [state\_detail　](#state_detail)
+      - [state\_detail　](#state_detail)
+      - [`ai_request` の項目定義](#ai_request-の項目定義)
+        - [ステータス遷移とフラグの変化（運用例）](#ステータス遷移とフラグの変化運用例)
+        - [💡 運用のポイント](#-運用のポイント)
     - [B. 個別ポスト精査テーブル (`zstu_post_refinements`)](#b-個別ポスト精査テーブル-zstu_post_refinements)
 - [🚀 AI週間評価API 設計案](#-ai週間評価api-設計案)
   - [1. Input (引数)](#1-input-引数)
@@ -529,37 +532,128 @@ UIから渡される、またはAPI引数として定義する変数名です。
 | **updated_at** | 更新日時 | `timestamp` | ◯ | `CURRENT_TIMESTAMP` | レコード更新日 |
 | **state_detail** | 状態の詳細 | **`jsonb`** | - |  | AI連携の詳細 |
 
-#### state_detail　
+##### state_detail　
 * AIへの要求状態をもつ
 * AIへの要求などの最終的な状態
 
-* **ai_request.status**
+* **ai_request.state_detail**
 
-| 日本語の状態 | 推奨する英語定数 (Status) | 説明・補足 |
-| :--- | :--- | :--- |
-| なし | unprocessed | まだ何もしていない初期状態。 |
-| 再要求 | pending_requeue | ユーザーが「やり直し」を求めた状態。次回のバッチ対象。 |
-| 要求中 | processing | AIにリクエストを投げた直後、または実行中。 |
-| 受領済み | refined | AIの回答が届き、ユーザーの確認を待っている状態。 |
-| 登録済み（更新あり） | completed_with_edit | AIの結果を元にユーザーが修正して確定させた。 |
-| 登録済み | completed | AIの結果をそのまま確定させた。 |
+| 状態 (status) | `is_edited` | `is_fixed` | 振る舞い・意味 |
+| --- | --- | --- | --- |
+| **unprocessed** | `false` | `false` | 初期状態。バッチ処理の対象。 |
+| **refined** | `false/true` | `false` | AI回答受領。ユーザー確認待ち。編集すると `is_edited: true`。 |
+| **completed** | `any` | `true` | **確定。** ユーザーが保存ボタンを押した後の最終状態。 |
+| **pending_requeue** | `any` | `false` | 再要求。バッチがこのフラグを見て `processing` へ戻信。 |
+| **processing** |`any`|`false`|AIへのAPIリクエストを投げた直後、またはバッチが処理を開始した状態。|
 
-「なし」「再要求」の場合は、１時間ごとのタスクで生成AIへの要求実施
+**unprocessed** **pending_requeue**の場合は、１時間ごとのタスクで生成AIへの要求実施
 「要求中」「受領済み」「 登録済み（更新あり）」「登録済み」の物は、一度AIに問い合わせ済なので、対象外とする。
+
+
+```sql
+-- 生成AIへのリクエスト対象を抽出する
+SELECT * FROM zstu_posts
+WHERE delete_flg = false
+  AND json_extract(state_detail, '$.ai_request.status') IN ('unprocessed', 'pending_requeue');
+
+-- 処理中への変更
+UPDATE zstu_posts
+SET state_detail = json_set(
+    state_detail, 
+    '$.ai_request.status', 'processing',
+    '$.ai_request.updated_at', datetime('now')
+)
+WHERE id = ? 
+  AND json_extract(state_detail, '$.ai_request.status') IN ('unprocessed', 'pending_requeue');
+
+-- AIリクエスト開始時の更新（「要求中」へ）
+UPDATE zstu_posts 
+SET state_detail = json_set(
+    state_detail, 
+    '$.ai_request.status', 'processing',
+    '$.ai_request.updated_at', datetaime('now')
+)
+WHERE id = ?;
+
+-- AIからの回答受領時（「受領済み」へ）
+UPDATE zstu_posts 
+SET state_detail = json_set(state_detail, '$.status', 'refined')
+WHERE id = ?;
+
+```
+
+
 
 ```json
 {
   "ai_request": {
     "status": "refined",
     "updated_at": "2026-02-26T14:00:00Z",
+    "is_edited": false,
     "is_fixed": false,
     "last_refinement_id": 1234,
-    "last_error": null,
-    "refined_content": "..." 
+    "last_error": null
   }
 }
 
 ```
+
+#####  `ai_request` の項目定義
+
+| 項目名 | 型 | 説明 |
+| --- | --- | --- |
+| **`status`** | `string` | **AI連携の現在のステータス。** <br>
+
+<br>`unprocessed` (未), `processing` (処理中), `pending_requeue` (再要求), `refined` (受領済), `completed` (完了) のいずれか。 |
+| **`updated_at`** | `string` | **ステータスまたは内容の最終更新日時。** <br>
+
+<br>ISO8601形式（`2026-02-26T14:00:00Z`）。 |
+| **`is_edited`** | `boolean` | **ユーザーによる編集の有無。** <br>
+
+<br>AIが生成した `refined_content` に対して、ユーザーが一度でも手動で修正を加えた場合に `true` に設定。 |
+| **`is_fixed`** | `boolean` | **確定フラグ。** <br>
+
+<br>ユーザーが内容を確認し、「これでOK」として保存・確定させた場合に `true`。これが `true` の間は、バッチ処理の対象から除外される。 |
+| **`last_refinement_id`** | `number` | **AIリクエストの履歴ID。** <br>
+
+<br>どのバージョンのAIモデルやプロンプトで生成されたかを追跡するための識別子。 |
+| **`last_error`** | `string` | **エラーログ。** <br>
+
+<br>直近のリクエストで失敗した場合のエラー内容を保持。成功時は `null`。 |
+| **`refined_content`** | `string` | **AIが生成した回答本文。** <br>
+
+<br>マークダウン形式などのテキストデータ。ユーザーが編集する際の「元ネタ」として保持。 |
+
+---
+
+###### ステータス遷移とフラグの変化（運用例）
+
+プロセスの流れに沿って、フラグがどう動くかを可視化すると以下のようになります。
+
+1. **初期状態 (`unprocessed`)**
+* `is_edited: false`, `is_fixed: false`
+
+2. **AI処理中 (`processing`)**
+* バッチがこの行をロック。UIでは「生成中...」と表示。
+
+3. **AI回答受領 (`refined`)**
+* `refined_content` にテキストが入り、ユーザーの画面に表示される。
+
+4. **ユーザーが修正 (`is_edited: true`)**
+* ユーザーがテキストエリアを書き換えた瞬間に `is_edited` を `true` に変更。
+* ※この時点ではまだ `is_fixed` は `false`（下書き状態）。
+
+5. **確定・保存 (`completed`)**
+* `is_fixed: true` に更新。これ以降、この投稿はAI連携のサイクルから外れる。
+
+
+###### 💡 運用のポイント
+
+* **`is_edited` の活用**:
+「AIが書いたものをそのまま出した投稿」と「人間がチェック・修正した投稿」を統計的に分析する際に役立ちます。
+* **`is_fixed` の役割**:
+`status` が `completed` であっても、ユーザーが後から「やっぱりもう一度AIに作り直させたい」とボタンを押した場合、`is_fixed` を `false` に戻し、`status` を `pending_requeue` にすることで、再度バッチの対象に復帰させることができます。
+
 
 
 #### B. 個別ポスト精査テーブル (`zstu_post_refinements`)
@@ -924,7 +1018,8 @@ API_Logs（共通アクセスログ）Task_Progress_Logs（目的別・処理進
   - [ ] どちらにしてもメール機能必要
 - [ ] メール送信機能整理　Resend候補かと・・・
   - [ ] お名前.comの状況確認
-
+- stripe 対応
+- twtter(x) 対応
 
 ## History 
 - 2026/03/01
