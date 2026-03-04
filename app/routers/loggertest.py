@@ -71,6 +71,7 @@ async def execute_task(request: Request,
     logger: EnhancedCSVLogger = Depends(get_logger), # ここでDI
     db: Session = Depends(get_db) # DBセッションを追加
     ):
+    ## TODOテスト用なので、URL精査予定 api.pyがいいのかと
     trace_id = str(uuid.uuid4())
     
     # --- A. 共通アクセスログ (api_logs) ---
@@ -102,6 +103,7 @@ async def execute_task(request: Request,
     date_start = (now_jst - timedelta(days=1)).date()
     date_end = (now_jst + timedelta(days=1)).date()
     
+    ## TODOテスト用なので、自分のIDのみ、実際は資格など確認しての調整想定
     # 固定ユーザーID (必要に応じて書き換えてください)
     fixed_user_id = "76b8d0ed-825d-43a6-a725-37e10c11015b"
 

@@ -64,8 +64,9 @@ class EnhancedCSVLogger:
 
         try:
             # Turso(SQLite)用にデータを加工（辞書・リストをJSON文字列へ）
+            # TODO: ここはテーブルのスキーマに合わせて適宜変える必要があります。全ての値を文字列化するのは一例です。
             processed_data = {
-                k: (json.dumps(v) if isinstance(v, (dict, list)) else v) 
+                k: (json.dumps(v, default=str) if isinstance(v, (dict, list)) else v) 
                 for k, v in data.items()
             }
             

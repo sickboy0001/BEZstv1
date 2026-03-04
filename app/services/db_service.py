@@ -69,7 +69,7 @@ def _update_post_ai_status(db: Session, posts: list, status: str):
     
     is_dict = isinstance(posts[0], dict)
     postids = [p["id"] if is_dict else p.id for p in posts]
-    print("_update_post_ai_status:is_dict=", is_dict, "postids=", postids)
+    # print("_update_post_ai_status:is_dict=", is_dict, "postids=", postids)
 
     # 現在時刻を ISO8601 形式で生成
     current_iso_time = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
