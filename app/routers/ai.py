@@ -154,6 +154,7 @@ async def ai_type_entry(
     # テンプレートに情報を渡して表示
     return templates.TemplateResponse("ai/ai_typo.html", {
         "user": user,
+        "short_id":short_id,
         "request": request,
         "system_name": uuid_mapping.system_name,
         "user_id": uuid_mapping.user_id,
