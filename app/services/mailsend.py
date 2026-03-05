@@ -11,11 +11,15 @@ async def mailsend_typo(db,user_id , user_mail, batch_id, background_tasks: Back
     # い。
     application_name = "BEZST"
     system_name="ai-typo"
-    controller_name = "ai/typo"
+    # controller_name = "ai/typo"
+    controller_name = "AI/Notify/Typo"
+    target_host_name = 'https://zerosecthinkv2.vercel.app'
+
     short_id, redirect_url = register_short_url(db, 
                                                 system_name, 
                                                 user_id, batch_id,
-                                                controller_name=controller_name)
+                                                controller_name=controller_name,
+                                                target_host_name=target_host_name)
 
     background_tasks.add_task(
         send_resend_email,

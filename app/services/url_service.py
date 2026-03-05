@@ -3,7 +3,13 @@ from sqlalchemy.orm import Session
 from app.lib.URLGenerator import URLGenerator, UUIDMapping, generate_short_id
 from app.lib.UUIDGenerator import UUIDGenerator as CryptoUUIDGenerator
 
-def register_short_url(db: Session, system_name: str, user_id: str, batch_id: int,controller_name:str="ai"):
+
+def register_short_url(db: Session, 
+            system_name: str, 
+            user_id: str, 
+            batch_id: int,
+            controller_name:str="ai"
+            ,target_host_name:str="http://localhost:8000"):
     """
     UUIDを生成してDBに登録し、短縮URLとリダイレクトURLを返します。
     """
@@ -21,13 +27,16 @@ def register_short_url(db: Session, system_name: str, user_id: str, batch_id: in
     parameters = {"batch_id": batch_id}
 
     # データベースに保存
-    db_uuid_mapping = UUIDMapping(short_id=short_id, uuid=identifier_uuid, system_name=system_name, user_id=user_id, parameters=parameters)
+    db_uuid_mapping = UUIDMapping(short_id=short_id, 
+            uuid=identifier_uuid, 
+            system_name=system_name, 
+            user_id=user_id, parameters=parameters)
     db.add(db_uuid_mapping)
     db.commit()
     db.refresh(db_uuid_mapping)
 
     # リダイレクトURLの生成
     url_generator = URLGenerator()
-    redirect_url = url_generator.generate_url(controller_name, short_id)
+    redirect_url = url_generator.generate_url(controller_name, short_id,target_host_name)
     
     return short_id, redirect_url
