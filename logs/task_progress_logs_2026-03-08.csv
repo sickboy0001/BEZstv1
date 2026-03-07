@@ -1,0 +1,5 @@
+trace_id,task_name,step_name,status,execution_order,created_at
+614a49fb-27a0-4969-949c-33c3c87a15f3,AI_Refinement,Fetch_Data,SUCCESS,1,2026-03-07 18:25:52.388
+614a49fb-27a0-4969-949c-33c3c87a15f3,AI_Refinement,Call_Cleaning_API,IN_PROGRESS,"{'user_id': '76b8d0ed-825d-43a6-a725-37e10c11015b', 'date_start': datetime.date(2026, 3, 4), 'date_end': datetime.date(2026, 3, 9), 'target_post_ids': [], 'is_force_reprocess': False, 'log_level_type': 'normal', 'action_mode': 'mode_result', 'is_enable_post_status_update': True}",2,2026-03-07 18:25:52.389
+333e6352-8849-415e-b63d-6d375ebf42e5,AI_Refinement,Fetch_Data,SUCCESS,1,2026-03-07 18:32:24.827
+333e6352-8849-415e-b63d-6d375ebf42e5,AI_Refinement,Call_Cleaning_API,IN_PROGRESS,"{'user_id': '76b8d0ed-825d-43a6-a725-37e10c11015b', 'date_start': datetime.date(2026, 3, 4), 'date_end': datetime.date(2026, 3, 9), 'target_post_ids': [], 'is_force_reprocess': False, 'log_level_type': 'normal', 'action_mode': 'mode_result', 'is_enable_post_status_update': True}",2,2026-03-07 18:32:24.827
