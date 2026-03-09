@@ -18,8 +18,8 @@ from app.services.user_service import get_user_mail
 
 
 router = APIRouter(
-    prefix="/api",
-    tags=["api"]
+    prefix="/api/v1",
+    tags=["api/v1"]
 )
 
 class CleaningRequest(BaseModel):

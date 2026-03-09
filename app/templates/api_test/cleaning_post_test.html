@@ -405,7 +405,7 @@ block content %}
     };
 
     try {
-      const response = await fetch("/api/cleaning-post", {
+      const response = await fetch("/api/v1/cleaning-post", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
