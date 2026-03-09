@@ -16,7 +16,7 @@ async def dashboard(request: Request, user = Depends(get_current_user)):
     developer_tools = [
         {
             "name": "Turso APIログ確認",
-            "url": "/test-api/read-turso-api-log",
+            "url": "/api-log",
             "description": "API実行履歴とタスク進捗ログを結合して表示します。DB接続確認やログ入手テスト用です。"
         },
         {

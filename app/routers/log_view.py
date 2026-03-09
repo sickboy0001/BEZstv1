@@ -14,11 +14,10 @@ from app.routers.system_logs import get_system_traces
 
 
 router = APIRouter(
-    prefix="/test-api",
     tags=["TestAPI"]
 )
 
-@router.get("/read-turso-api-log", response_class=HTMLResponse)
+@router.get("/api-log", response_class=HTMLResponse)
 async def read_turso_api_log(
     request: Request,
     start_date: date = Query(None),
@@ -59,7 +58,7 @@ async def read_turso_api_log(
         error_msg = f"ログの取得に失敗しました: {str(e)}"
 
     return templates.TemplateResponse(
-        "read_turso_api_log.html", 
+        "log/list.html", 
         {
             "request": request, 
             "logs": logs, 
@@ -70,34 +69,34 @@ async def read_turso_api_log(
     )
 
 
-@router.get("/Cleaning_post_api_test", response_class=HTMLResponse)
-async def cleaning_post_api_test(
-    request: Request,
-    user = Depends(get_current_user),
-    start_date: Optional[date] = Query(None),
-    end_date: Optional[date] = Query(None)
-):
-    print("cleaning_post_api_test2:start")
-    if not user:
-        return RedirectResponse(url="/login")
+# @router.get("/Cleaning_post_api_test", response_class=HTMLResponse)
+# async def cleaning_post_api_test(
+#     request: Request,
+#     user = Depends(get_current_user),
+#     start_date: Optional[date] = Query(None),
+#     end_date: Optional[date] = Query(None)
+# ):
+#     print("cleaning_post_api_test2:start")
+#     if not user:
+#         return RedirectResponse(url="/login")
 
-    if start_date is None:
-        start_date = date.today()
-    if end_date is None:
-        end_date = date.today()
-    # print("userid:", user.id)
+#     if start_date is None:
+#         start_date = date.today()
+#     if end_date is None:
+#         end_date = date.today()
+#     # print("userid:", user.id)
 
-    # print("cleaning_post_api_test:end:" ,context)
-    return templates.TemplateResponse(
-        "api_test/cleaning_post_test.html",
-        {
-            "request": request,
-            "user": user,
-            "user_id": user.id,
-            "target_period": {
-                "start_date": start_date.isoformat(),
-                "end_date": end_date.isoformat(),
-            },
-        }
-    )
+#     # print("cleaning_post_api_test:end:" ,context)
+#     return templates.TemplateResponse(
+#         "api_test/cleaning_post_test.html",
+#         {
+#             "request": request,
+#             "user": user,
+#             "user_id": user.id,
+#             "target_period": {
+#                 "start_date": start_date.isoformat(),
+#                 "end_date": end_date.isoformat(),
+#             },
+#         }
+#     )
  
