@@ -7,7 +7,6 @@ class URLGenerator:
     def __init__(self):
         # 環境変数から環境タイプを取得します。
         self.environment = os.environ.get("APP_ENVIRONMENT", "local")  # デフォルトはローカル
-        # TODO: ここでのproductionのURLが合わない・・・なぜか確認、メールで置換ができない模様
         # 環境に基づいてホスト名を設定します。
         # 環境変数APP_ENVIRONMENT production 追加
         self.host_names = {
