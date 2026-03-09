@@ -22,3 +22,14 @@ async def get_user_mail_from_authuser(db: Session, user_id: str) -> str:
     result = db.execute(query, {"user_id": user_id})
     rows = [dict(row._mapping) for row in result]
     return rows[0]["email"] if rows else None
+
+async def get_users_with_auto_ai_typo(db: Session) -> list:
+    query = text("""
+      SELECT id 
+      FROM user_profile 
+      WHERE (settings->'auto_ai'->>'typo')::boolean = true;
+    """)
+    result = db.execute(query)
+    # UUIDオブジェクトを文字列に変換して返す
+    rows = [str(row[0]) for row in result]
+    return rows

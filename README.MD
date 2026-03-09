@@ -971,12 +971,15 @@ API_Logs（共通アクセスログ）Task_Progress_Logs（目的別・処理進
   - [ ] 昨日分拾って、登録するかどうかを翌日の１時に作成
   - [ ] 翌日URLみて、登録するかを選ぶ
   - [ ] どちらにしてもメール機能必要
-- [ ] メール送信機能整理　Resend候補かと・・・
+- [x] メール送信機能整理　Resend候補かと・・・
   - [ ] お名前.comの状況確認
 - [ ] stripe 対応
 - [ ] twtter(x) 対応
 
 ## History 
+- 2026/03/09
+  - Api Path 調整
+  - Api Called User Typo Setting Get
 - 2026/03/01
   - GeminiAI調整
   - resend テスト
