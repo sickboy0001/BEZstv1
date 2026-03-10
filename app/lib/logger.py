@@ -61,11 +61,16 @@ class EnhancedCSVLogger:
                 use_url = use_url.replace("wss://", "https://", 1)
             elif use_url.startswith("libsql://"):
                 use_url = use_url.replace("libsql://", "https://", 1)
+        
+        if not use_url:
+            # URLが設定されていない場合は早期リターン
+            # (ローカル開発環境などでTursoを使わない設定の場合を想定)
+            return
 
         try:
             # Turso(SQLite)用にデータを加工（辞書・リストをJSON文字列へ）
             processed_data = {
-                k: (json.dumps(v, default=str) if isinstance(v, (dict, list)) else v) 
+                k: (json.dumps(v, default=str, ensure_ascii=False) if isinstance(v, (dict, list)) else v) 
                 for k, v in data.items()
             }
             
@@ -75,7 +80,11 @@ class EnhancedCSVLogger:
                 sql = f"INSERT INTO {table_name} ({keys}) VALUES ({placeholders})"
                 client.execute(sql, processed_data)
         except Exception as e:
-            print(f"【警告】Turso書き込み失敗 (CSVには保存済): {e}")
+            import traceback
+            # エラーの詳細を標準出力に出すことで、Cloud Logging等で確認可能にする
+            print(f"【警告】Turso書き込み失敗 (table: {table_name}, error: {e})")
+            print(f"データ内容: {json.dumps(data, default=str, ensure_ascii=False)}") # 必要に応じて有効化
+            traceback.print_exc()
 
     def log(self, background_tasks: BackgroundTasks, table_name: str, data: Dict[str, Any]):
         """CSV保存とTurso保存(非同期)を同時に実行"""
