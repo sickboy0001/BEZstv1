@@ -81,9 +81,14 @@ class EnhancedCSVLogger:
                 client.execute(sql, processed_data)
         except Exception as e:
             import traceback
-            # エラーの詳細を標準出力に出すことで、Cloud Logging等で確認可能にする
-            print(f"【警告】Turso書き込み失敗 (table: {table_name}, error: {e})")
-            print(f"データ内容: {json.dumps(data, default=str, ensure_ascii=False)}") # 必要に応じて有効化
+            # KeyError: 'result' は多くの場合、テーブル定義とデータの不一致（カラム名間違い・カラム不足）
+            if isinstance(e, KeyError) and str(e) == "'result'":
+                print(f"【重要】Turso書き込み失敗 (table: {table_name}): テーブルのカラム定義とデータのキーが一致していません。")
+                print(f"  送信しようとしたキー: {list(processed_data.keys())}")
+                print(f"  テーブル '{table_name}' に存在しないカラムが含まれていないか確認してください。")
+            else:
+                print(f"【警告】Turso書き込み失敗 (table: {table_name}, error: {e})")
+            
             traceback.print_exc()
 
     def log(self, background_tasks: BackgroundTasks, table_name: str, data: Dict[str, Any]):

@@ -14,7 +14,7 @@ def send_resend_email(
     to: List[str],
     subject: str,
     html_content: str,
-    from_email: str = "onboarding@resend.dev" # ドメイン認証後は自分のドメインに変更
+    from_email: str = "noreply@stockprofit10.net" # ドメイン認証後は自分のドメインに変更
 ):
     """
     Resend APIを使用してメールを送信する共通関数
